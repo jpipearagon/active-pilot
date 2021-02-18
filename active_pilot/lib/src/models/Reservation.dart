@@ -1,4 +1,7 @@
 
+import 'Activities.dart';
+import 'UserDetail.dart';
+
 class Reservation {
   bool approved;
   String sId;
@@ -7,6 +10,8 @@ class Reservation {
   String end;
   Status status;
   int iV;
+  Pilot pilot;
+  Activity activity;
 
   Reservation(
       {this.approved,
@@ -15,7 +20,10 @@ class Reservation {
         this.start,
         this.end,
         this.status,
-        this.iV});
+        this.iV,
+        this.pilot,
+        this.activity
+      });
 
   Reservation.fromJson(Map<String, dynamic> json) {
     approved = json['approved'];
@@ -26,6 +34,10 @@ class Reservation {
     status =
     json['status'] != null ? new Status.fromJson(json['status']) : null;
     iV = json['__v'];
+    pilot = json['pilot'] != null ? new Pilot.fromJson(json['pilot']) : null;
+    activity = json['activity'] != null
+        ? new Activity.fromJson(json['activity'])
+        : null;
   }
 
   Map<String, dynamic> toJson() {
@@ -39,6 +51,12 @@ class Reservation {
       data['status'] = this.status.toJson();
     }
     data['__v'] = this.iV;
+    if (this.pilot != null) {
+      data['pilot'] = this.pilot.toJson();
+    }
+    if (this.activity != null) {
+      data['activity'] = this.activity.toJson();
+    }
     return data;
   }
 }

@@ -101,8 +101,11 @@ class Pilot {
     String certificateNumber;
     bool enabled;
     bool flyAlone;
+    String sId;
+    String firstName;
+    String lastName;
 
-    Pilot({this.id, this.aircraftCategory, this.canFlight, this.canReserve, this.certificateNumber, this.enabled, this.flyAlone});
+    Pilot({this.id, this.aircraftCategory, this.canFlight, this.canReserve, this.certificateNumber, this.enabled, this.flyAlone, this.sId, this.firstName, this.lastName});
 
     factory Pilot.fromJson(Map<String, dynamic> json) {
         return Pilot(
@@ -113,6 +116,9 @@ class Pilot {
             certificateNumber: json['certificateNumber'],
             enabled: json['enabled'],
             flyAlone: json['flyAlone'],
+            sId: json['_id'],
+            firstName: json['firstName'],
+            lastName: json['lastName']
         );
     }
 
@@ -127,6 +133,9 @@ class Pilot {
         if (this.aircraftCategory != null) {
             data['aircraftCategory'] = this.aircraftCategory;
         }
+        data['_id'] = this.sId;
+        data['firstName'] = this.firstName;
+        data['lastName'] = this.lastName;
         return data;
     }
 }

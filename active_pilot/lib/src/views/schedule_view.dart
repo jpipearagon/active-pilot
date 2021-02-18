@@ -149,7 +149,7 @@ class _ScheduleViewState extends State<ScheduleView> {
                 Column(
                   children: [
                     Text(
-                      DateUtil.getDateFormattedFromString(reservation.startDate,
+                      DateUtil.getDateFormattedFromString(reservation.start,
                           DateUtil.yyyyMmddTHHmmssz, DateUtil.HHmm),
                       style: GoogleFonts.montserrat(
                           //fontFamily: "Montserrat",
@@ -162,7 +162,7 @@ class _ScheduleViewState extends State<ScheduleView> {
                       height: 5,
                     ),
                     Text(
-                      DateUtil.getDateFormattedFromString(reservation.endDate,
+                      DateUtil.getDateFormattedFromString(reservation.end,
                           DateUtil.yyyyMmddTHHmmssz, DateUtil.HHmm),
                       style: GoogleFonts.montserrat(
                           //fontFamily: "Montserrat",
@@ -191,7 +191,7 @@ class _ScheduleViewState extends State<ScheduleView> {
                     Row(
                       children: [
                         Text(
-                          reservation.pilot,
+                          "${reservation.pilot.firstName} ${reservation.pilot.lastName}" ,
                           style: GoogleFonts.montserrat(
                               //fontFamily: "Montserrat",
                               fontSize: 14.0,
@@ -205,7 +205,7 @@ class _ScheduleViewState extends State<ScheduleView> {
                       height: 5,
                     ),
                     Text(
-                      reservation.activityType,
+                      reservation.activity.name,
                       style: GoogleFonts.openSans(
                           fontSize: 12,
                           fontWeight: FontWeight.w400,
@@ -219,7 +219,7 @@ class _ScheduleViewState extends State<ScheduleView> {
                       child: Container(
                         decoration: BoxDecoration(
                             color: ColorsUtils.getColorFromHex(
-                                reservation.reservationStatus.color),
+                                reservation.status.color),
                             border: Border.all(
                               color: Colors.transparent,
                             ),
@@ -233,7 +233,7 @@ class _ScheduleViewState extends State<ScheduleView> {
                             1.0,
                           ),
                           child: Text(
-                            reservation.reservationStatus.name,
+                            reservation.status.name,
                             style: GoogleFonts.openSans(
                                 fontSize: 12,
                                 fontWeight: FontWeight.w400,
@@ -342,7 +342,7 @@ class _ScheduleViewState extends State<ScheduleView> {
     );
 
     if(reloadData) {
-
+      _scheduleBloc.loadSchedule(DateTime.now());
     }
   }
   
