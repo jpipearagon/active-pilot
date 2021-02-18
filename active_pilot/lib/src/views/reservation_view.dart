@@ -30,9 +30,13 @@ class _ReservationViewState extends State<ReservationView> {
   DateTime _chosenDateTimeEnd =  DateTime.now().add(Duration(hours: 2));
   var formatter = DateFormat("yyyy/MM/dd HH:mm a");
   String _strLocation = "Select Location";
+  LocationUser _locationUser;
   String _strActivity = "Select Activity";
+  Activity _activity;
   String _strInstructor = "Select Instructor";
+  UserDetail _userDetail;
   String _strAircraft = "Select Aircraft";
+  Aircraft _aircraft;
   String _strAircraftRegistration = "";
   bool _isLoading = false;
 
@@ -224,6 +228,7 @@ class _ReservationViewState extends State<ReservationView> {
                         color: Color.fromRGBO(238,238,238,1)
                     ),
                   ),
+                  showErrorEndDate(),
                   SizedBox(
                     height: size.height * 0.0625,
                   ),
@@ -371,7 +376,7 @@ class _ReservationViewState extends State<ReservationView> {
                         ],
                       ),
                     ),
-                    onTap: () => _showData(Types.instructor),
+                    onTap: isAvailableInstructor() ? () => _showData(Types.instructor) : null,
                   ),
                   Container(
                     padding: EdgeInsets.symmetric(horizontal: 27),
@@ -438,7 +443,7 @@ class _ReservationViewState extends State<ReservationView> {
                         ],
                       ),
                     ),
-                    onTap: () => _showData(Types.aircraft),
+                    onTap: isAvailableAircraft() ? () => _showData(Types.aircraft) : null,
                   ),
                   Container(
                     padding: EdgeInsets.symmetric(horizontal: 27),
@@ -459,7 +464,7 @@ class _ReservationViewState extends State<ReservationView> {
                             borderRadius: BorderRadius.circular(22.5),
                             side: BorderSide(color: Colors.transparent)
                         ),
-                        color: Color.fromRGBO(223, 173, 78, 1),
+                        color: isCompletedReservation() ? Color.fromRGBO(223, 173, 78, 1) : Color.fromRGBO(106,107,108,1),
                         child: Text(
                           "Continue ",
                           style: TextStyle(
@@ -468,9 +473,7 @@ class _ReservationViewState extends State<ReservationView> {
                               fontFamily: "Open Sans",
                               fontWeight: FontWeight.w400),
                         ),
-                        onPressed: () {
-                          Navigator.of(context).pushNamed(ConfirmationView.routeName);
-                        },
+                        onPressed: isCompletedReservation() ? () => continueReservation(context) : null,
                       ),
                     ),
                   ),
@@ -550,6 +553,23 @@ class _ReservationViewState extends State<ReservationView> {
     );
   }
 
+  Widget showErrorEndDate() {
+    final statusDate = _chosenDateTimeStart.isBefore(_chosenDateTimeEnd);
+    if (statusDate) {
+      return Container();
+    } else {
+      return Text(
+          "Please select a date greater than the initial one ",
+          style: TextStyle(
+              fontFamily: "Montserrat",
+              fontSize: 12,
+              fontWeight: FontWeight.w600 ,
+              color: Colors.red[600]
+          )
+      );
+    }
+  }
+
 
   void _showData(Types type) async {
 
@@ -593,7 +613,7 @@ class _ReservationViewState extends State<ReservationView> {
 
     if(type == Types.instructor) {
       final instructorsApi = InstructorApi();
-      final instructors = await instructorsApi.getInstructors();
+      final instructors = await instructorsApi.getAvailableInstructor(_chosenDateTimeStart.toIso8601String(), _chosenDateTimeEnd.toIso8601String(), _locationUser.id);
       setState(() {
         _isLoading = false;
       });
@@ -611,8 +631,9 @@ class _ReservationViewState extends State<ReservationView> {
     }
 
     if(type == Types.aircraft) {
+
       final aircraftApi = AircraftApi();
-      final aircrafts = await aircraftApi.getAircrafts();
+      final aircrafts = await aircraftApi.getAvailableAircrafts(_chosenDateTimeStart.toIso8601String(), _chosenDateTimeEnd.toIso8601String(), _locationUser.id, _activity.id, _userDetail.pilot.aircraftCategory);
       setState(() {
         _isLoading = false;
       });
@@ -634,29 +655,65 @@ class _ReservationViewState extends State<ReservationView> {
 
   void _selectData(Types type, dynamic dataSelect) {
     if(type == Types.location) {
-      LocationUser location = dataSelect;
+      _locationUser = dataSelect;
       setState(() {
-        _strLocation = location.name;
+        _strLocation = _locationUser.name;
       });
     }
     if(type == Types.activity) {
-      Activity activity = dataSelect;
+      _activity = dataSelect;
       setState(() {
-        _strActivity = activity.name;
+        _strActivity = _activity.name;
       });
     }
     if(type == Types.instructor) {
-      UserDetail user = dataSelect;
+      _userDetail = dataSelect;
       setState(() {
-        _strInstructor = "${user.firstName} ${user.lastName}";
+        _strInstructor = "${_userDetail.firstName} ${_userDetail.lastName}";
       });
     }
     if(type == Types.aircraft) {
-      Aircraft aircraft = dataSelect;
+      _aircraft = dataSelect;
       setState(() {
-        _strAircraft = "${aircraft.aircraftModel.name} ${aircraft.aircraftMaker.name}";
-        _strAircraftRegistration = "${aircraft.registrationTail}";
+        _strAircraft = "${_aircraft.aircraftModel.name} ${_aircraft.aircraftMaker.name}";
+        _strAircraftRegistration = "${_aircraft.registrationTail}";
       });
+    }
+  }
+
+  bool isAvailableInstructor() {
+    final statusDate = _chosenDateTimeStart.isBefore(_chosenDateTimeEnd);
+    return statusDate && _locationUser != null;
+  }
+
+  bool isAvailableAircraft() {
+    final statusDate = _chosenDateTimeStart.isBefore(_chosenDateTimeEnd);
+    return statusDate && _locationUser != null && _activity != null;
+  }
+
+  bool isCompletedReservation() {
+    final statusDate = _chosenDateTimeStart.isBefore(_chosenDateTimeEnd);
+    return statusDate && _locationUser != null && _activity != null && _userDetail != null && _aircraft != null;
+  }
+
+  void continueReservation( BuildContext context) async {
+    final reservationData = {
+      "startDate": _chosenDateTimeStart.toIso8601String(),
+      "endDate": _chosenDateTimeEnd.toIso8601String(),
+      "activityId" : _activity.id,
+      "instructorId": _userDetail.id,
+      "aircraftId": _aircraft.id,
+    };
+
+
+    final bool reloadData = await Navigator.push(
+      context,
+      MaterialPageRoute(
+          builder: (context) => ConfirmationView(reservationData: reservationData,)),
+    );
+
+    if (reloadData != null && reloadData) {
+      Navigator.of(context).pop(reloadData);
     }
   }
 

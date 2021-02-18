@@ -24,4 +24,31 @@ class AircraftApi {
       return null;
     }
   }
+
+  Future<List<Aircraft>> getAvailableAircrafts(String startDate, String endDate, String locationId, String activityId, List<String> aircraftCategory) async {
+    try {
+      final Map<String, String> params =
+      {
+        "start": startDate,
+        "end": endDate,
+        "location" : locationId,
+        "activity" : activityId,
+        "_populate[0]": "aircraftMaker",
+        "_populate[1]": "aircraftModel",
+      };
+
+      for (var i = 0; i < aircraftCategory.length; i++) {
+        params["aircraftCategory[$i]"] = aircraftCategory[i];
+      }
+
+      List<dynamic> response = await _restApi.get(endPoint: "/api/aircrafts/listAvailable", queryParameters: params);
+      final list = response.map((data) {
+        return Aircraft.fromJson(data);
+      });
+      return list.toList();
+    } catch (e) {
+      print(e.toString());
+      return null;
+    }
+  }
 }

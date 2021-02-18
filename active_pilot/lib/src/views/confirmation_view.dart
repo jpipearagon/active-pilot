@@ -1,9 +1,18 @@
+import 'package:aircraft/src/apis/reservation_api.dart';
+import 'package:aircraft/src/sharedpreferences/shared_preferences_user.dart';
 import 'package:aircraft/src/views/schedule_view.dart';
+import 'package:aircraft/src/widgets/message_widget.dart';
 import 'package:flutter/material.dart';
+import 'package:loading_overlay/loading_overlay.dart';
+import 'package:lottie/lottie.dart';
 
 class ConfirmationView extends StatefulWidget {
 
   static final routeName = "confirmation";
+
+  final Map reservationData;
+
+  ConfirmationView({this.reservationData});
 
   @override
   _ConfirmationViewState createState() => _ConfirmationViewState();
@@ -13,9 +22,43 @@ class _ConfirmationViewState extends State<ConfirmationView> {
 
   bool _checkOne = false;
   bool _checkTwo = false;
+  String _startDate;
+  String _endDate;
+  String _activityId;
+  String _instructorId;
+  String _aircraftId;
+  bool _isLoading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    final arguments = widget.reservationData;
+    _startDate = arguments["startDate"];
+    _endDate = arguments["endDate"];
+    _activityId = arguments["activityId"];
+    _instructorId = arguments["instructorId"];
+    _aircraftId = arguments["aircraftId"];
+
+  }
 
   @override
   Widget build(BuildContext context) {
+    return LoadingOverlay(
+        color: Colors.white,
+        opacity: 1.0,
+        progressIndicator: Lottie.asset(
+            'assets/gifs/35718-loader.json',
+            width: 100,
+            height: 100
+        ),
+        isLoading: _isLoading,
+        child: _app(context)
+    );
+  }
+
+  Widget _app(BuildContext context) {
+
+
 
     final size = MediaQuery.of(context).size;
 
@@ -159,9 +202,7 @@ class _ConfirmationViewState extends State<ConfirmationView> {
                               fontFamily: "Open Sans",
                               fontWeight: FontWeight.w400),
                         ),
-                        onPressed: () {
-                          Navigator.of(context).popUntil(ModalRoute.withName(ScheduleView.routeName));
-                        },
+                        onPressed: (_checkOne && _checkTwo)? () => createReservation(context): null,
                       ),
                     ),
                   )
@@ -172,4 +213,27 @@ class _ConfirmationViewState extends State<ConfirmationView> {
       ),
     );
   }
+
+  void createReservation(BuildContext context) async {
+    setState(() {
+      _isLoading = true;
+    });
+    final prefs = SharedPreferencesUser();
+    final _reservationApi = ReservationApi();
+    final reservation =
+    await _reservationApi.createReservation(_startDate, _endDate, _activityId, _aircraftId, _instructorId, prefs.userId);
+
+    if(reservation != null) {
+      setState(() {
+        _isLoading = false;
+        Navigator.of(context).pop(true);
+      });
+    } else {
+      setState(() {
+        _isLoading = false;
+        showMessage(context, "Error create reservation", "an error occurred in the creation of the reservation ");
+      });
+    }
+  }
+
 }

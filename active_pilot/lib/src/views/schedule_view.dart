@@ -139,9 +139,7 @@ class _ScheduleViewState extends State<ScheduleView> {
           )
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Navigator.of(context).pushNamed(ReservationView.routeName);
-        },
+        onPressed: () => gotoReservation(context),
         child: Icon(Icons.add),
         backgroundColor: Color.fromRGBO(223,173,78,1),
       ),
@@ -229,6 +227,18 @@ class _ScheduleViewState extends State<ScheduleView> {
         },
       );
     }).toList();
+  }
+
+  void gotoReservation(BuildContext context) async {
+    final bool reloadData = await Navigator.push(
+      context,
+      MaterialPageRoute(
+          builder: (context) => ReservationView()),
+    );
+
+    if(reloadData) {
+
+    }
   }
 
 }
