@@ -1,19 +1,29 @@
+import 'package:aircraft/src/models/ReservationStatus.dart';
+
 class Reservation {
-  int tag;
+  String id;
   String startDate;
   String endDate;
-  String event;
-  String eventType;
+  String pilot;
+  String activityType;
+  ReservationStatus reservationStatus;
 
-  Reservation(
-    this.tag,
+  Reservation({
+    this.id,
     this.startDate,
     this.endDate,
-    this.event,
-    this.eventType,
-  );
+    this.pilot,
+    this.activityType,
+    this.reservationStatus,
+  });
 
   factory Reservation.fromJson(Map<String, dynamic> json) {
-    return null;
+    return Reservation(
+        id: json['_id'],
+        startDate: json['start'],
+        endDate: json['end'],
+        activityType: json['activity']['name'],
+        pilot: json['pilot']['firstName'] + ' ' + json['pilot']['lastName'],
+        reservationStatus: ReservationStatus.fromJson(json['status']));
   }
 }

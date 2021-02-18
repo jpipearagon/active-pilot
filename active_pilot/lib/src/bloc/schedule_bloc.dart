@@ -2,6 +2,8 @@ import 'dart:async';
 
 import 'package:aircraft/src/apis/schedule_api.dart';
 import 'package:aircraft/src/models/Reservation.dart';
+import 'package:aircraft/utils/date_util.dart';
+import 'package:aircraft/utils/string_util.dart';
 
 class ScheduleBloc {
   static final ScheduleBloc _singleton = ScheduleBloc._internal();
@@ -20,10 +22,19 @@ class ScheduleBloc {
     return _singleton;
   }
 
-  Future<void> loadSchedule() async {
+  Future<void> loadSchedule(DateTime date) async {
     final scheduleApi = ScheduleApi();
+
+    var timeZoneOffset = DateTime.now().timeZoneOffset;
+    var timeZone = StringUtil.convertNumberToHoursMinutes(
+        (timeZoneOffset.inMinutes / 60).toString());
+
+    String startDate =
+        DateUtil.getDateStringFromDateTime(date, DateUtil.yyyyMMdd);
+
     final response = await scheduleApi.getScheduleByDate(
-        '2021-02-08T00:00:00-05:00', '2021-02-08T23:59:59-05:00');
+        '$startDate' + 'T00:00:00$timeZone',
+        '$startDate' + 'T23:59:59$timeZone');
     scheduleSink(response);
     return null;
   }

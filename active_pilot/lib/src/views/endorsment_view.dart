@@ -1,16 +1,24 @@
+import 'package:aircraft/src/bloc/user_bloc.dart';
 import 'package:flutter/material.dart';
 
 class EndorsmentView extends StatefulWidget {
-
-  EndorsmentView(
-      {Key key,})
-      : super(key: key);
+  EndorsmentView({
+    Key key,
+  }) : super(key: key);
 
   @override
   _EndorsmentViewState createState() => _EndorsmentViewState();
 }
 
 class _EndorsmentViewState extends State<EndorsmentView> {
+  final _userBloc = UserBloc();
+
+  @override
+  void initState() {
+    super.initState();
+    _userBloc.loadEndorsments();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -26,9 +34,8 @@ class _EndorsmentViewState extends State<EndorsmentView> {
         title: Container(
           padding: EdgeInsets.symmetric(vertical: 15, horizontal: 21),
           decoration: BoxDecoration(
-              border: Border.all(color: Color.fromRGBO(238,238,238,1)),
-              borderRadius: BorderRadius.circular(4)
-          ),
+              border: Border.all(color: Color.fromRGBO(238, 238, 238, 1)),
+              borderRadius: BorderRadius.circular(4)),
           child: Column(
             children: [
               Row(
@@ -36,74 +43,96 @@ class _EndorsmentViewState extends State<EndorsmentView> {
                 children: [
                   Row(
                     children: [
-                      Text("Issued: ",
+                      Text(
+                        "Issued: ",
                         style: TextStyle(
-                            color: Color.fromRGBO(4,41,68,1),
+                            color: Color.fromRGBO(4, 41, 68, 1),
                             fontSize: 12,
                             fontFamily: "Open Sans",
-                            fontWeight: FontWeight.w700),),
-                      Text(endorsmentObject.issued,
+                            fontWeight: FontWeight.w700),
+                      ),
+                      Text(
+                        endorsmentObject.issued,
                         style: TextStyle(
-                            color: Color.fromRGBO(106,107,108,1),
+                            color: Color.fromRGBO(106, 107, 108, 1),
                             fontSize: 12,
                             fontFamily: "Open Sans",
-                            fontWeight: FontWeight.w400),),
+                            fontWeight: FontWeight.w400),
+                      ),
                     ],
                   ),
-                  SizedBox(width: 20,),
+                  SizedBox(
+                    width: 20,
+                  ),
                   Row(
                     children: [
-                      Text("Expires: ",
+                      Text(
+                        "Expires: ",
                         style: TextStyle(
-                            color: Color.fromRGBO(4,41,68,1),
+                            color: Color.fromRGBO(4, 41, 68, 1),
                             fontSize: 12,
                             fontFamily: "Open Sans",
-                            fontWeight: FontWeight.w700),),
-                      Text(endorsmentObject.expires,
+                            fontWeight: FontWeight.w700),
+                      ),
+                      Text(
+                        endorsmentObject.expires,
                         style: TextStyle(
-                            color: Color.fromRGBO(106,107,108,1),
+                            color: Color.fromRGBO(106, 107, 108, 1),
                             fontSize: 12,
                             fontFamily: "Open Sans",
-                            fontWeight: FontWeight.w400),)
+                            fontWeight: FontWeight.w400),
+                      )
                     ],
                   )
                 ],
               ),
-              SizedBox(height: 10,),
+              SizedBox(
+                height: 10,
+              ),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Row(
                     children: [
-                      Text("Signature: ",
+                      Text(
+                        "Signature: ",
                         style: TextStyle(
-                            color: Color.fromRGBO(4,41,68,1),
+                            color: Color.fromRGBO(4, 41, 68, 1),
                             fontSize: 12,
                             fontFamily: "Open Sans",
-                            fontWeight: FontWeight.w700),),
-                      Text(endorsmentObject.signature,
+                            fontWeight: FontWeight.w700),
+                      ),
+                      Text(
+                        endorsmentObject.signature,
                         style: TextStyle(
-                            color: Color.fromRGBO(106,107,108,1),
+                            color: Color.fromRGBO(106, 107, 108, 1),
                             fontSize: 12,
                             fontFamily: "Open Sans",
-                            fontWeight: FontWeight.w400),),
+                            fontWeight: FontWeight.w400),
+                      ),
                     ],
                   ),
-                  SizedBox(width: 20,),
+                  SizedBox(
+                    width: 20,
+                  ),
                   Row(
                     children: [
-                      Text("Total: ",
+                      Text(
+                        "Total: ",
                         style: TextStyle(
-                            color: Color.fromRGBO(4,41,68,1),
+                            color: Color.fromRGBO(4, 41, 68, 1),
                             fontSize: 12,
                             fontFamily: "Open Sans",
-                            fontWeight: FontWeight.w700),),
-                      Text(endorsmentObject.total,
+                            fontWeight: FontWeight.w700),
+                      ),
+                      Text(
+                        endorsmentObject.total,
                         style: TextStyle(
-                            color: Color.fromRGBO(106,107,108,1),
+                            color: Color.fromRGBO(106, 107, 108, 1),
                             fontSize: 12,
                             fontFamily: "Open Sans",
-                            fontWeight: FontWeight.w400),)
+                            fontWeight: FontWeight.w400),
+                      )
                     ],
                   )
                 ],
@@ -137,11 +166,5 @@ class Endorsment {
   String signature;
   String total;
 
-
-  Endorsment(this.tag,
-      this.issued,
-      this.expires,
-      this.signature,
-      this.total);
+  Endorsment(this.tag, this.issued, this.expires, this.signature, this.total);
 }
-
