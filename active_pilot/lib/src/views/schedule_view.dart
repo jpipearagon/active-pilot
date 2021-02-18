@@ -18,11 +18,12 @@ class ScheduleView extends StatefulWidget {
 class _ScheduleViewState extends State<ScheduleView> {
   final _calendarController = CalendarController();
   final _scheduleBloc = ScheduleBloc();
+  var _selectDay = DateTime.now();
 
   @override
   void initState() {
     super.initState();
-    _scheduleBloc.loadSchedule(DateTime.now());
+    _scheduleBloc.loadSchedule(_selectDay);
   }
 
   @override
@@ -49,6 +50,7 @@ class _ScheduleViewState extends State<ScheduleView> {
                 child: Column(
                   children: [
                     TableCalendar(
+                      initialSelectedDay: _selectDay,
                       locale: 'en_US',
                       headerStyle: HeaderStyle(
                           formatButtonVisible: false,
@@ -335,14 +337,18 @@ class _ScheduleViewState extends State<ScheduleView> {
   }
   
   void gotoReservation(BuildContext context) async {
-    final bool reloadData = await Navigator.push(
+    final DateTime date = await Navigator.push(
       context,
       MaterialPageRoute(
           builder: (context) => ReservationView()),
     );
 
-    if(reloadData) {
-      _scheduleBloc.loadSchedule(DateTime.now());
+    if(date != null) {
+      setState(() {
+        _selectDay = date;
+        _calendarController.setSelectedDay(_selectDay);
+        _onDaySelected(date, null, null);
+      });
     }
   }
   

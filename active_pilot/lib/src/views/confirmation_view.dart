@@ -22,8 +22,8 @@ class _ConfirmationViewState extends State<ConfirmationView> {
 
   bool _checkOne = false;
   bool _checkTwo = false;
-  String _startDate;
-  String _endDate;
+  DateTime _startDate;
+  DateTime _endDate;
   String _activityId;
   String _instructorId;
   String _aircraftId;
@@ -221,12 +221,12 @@ class _ConfirmationViewState extends State<ConfirmationView> {
     final prefs = SharedPreferencesUser();
     final _reservationApi = ReservationApi();
     final reservation =
-    await _reservationApi.createReservation(_startDate, _endDate, _activityId, _aircraftId, _instructorId, prefs.userId);
+    await _reservationApi.createReservation(_startDate.toIso8601String(), _endDate.toIso8601String(), _activityId, _aircraftId, _instructorId, prefs.userId);
 
     if(reservation != null) {
       setState(() {
         _isLoading = false;
-        Navigator.of(context).pop(true);
+        Navigator.of(context).pop(_startDate);
       });
     } else {
       setState(() {

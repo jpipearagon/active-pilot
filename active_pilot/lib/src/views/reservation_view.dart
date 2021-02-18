@@ -698,22 +698,22 @@ class _ReservationViewState extends State<ReservationView> {
 
   void continueReservation( BuildContext context) async {
     final reservationData = {
-      "startDate": _chosenDateTimeStart.toIso8601String(),
-      "endDate": _chosenDateTimeEnd.toIso8601String(),
+      "startDate": _chosenDateTimeStart,
+      "endDate": _chosenDateTimeEnd,
       "activityId" : _activity.id,
       "instructorId": _userDetail.id,
       "aircraftId": _aircraft.id,
     };
 
 
-    final bool reloadData = await Navigator.push(
+    final DateTime date = await Navigator.push(
       context,
       MaterialPageRoute(
           builder: (context) => ConfirmationView(reservationData: reservationData,)),
     );
 
-    if (reloadData != null && reloadData) {
-      Navigator.of(context).pop(reloadData);
+    if (date != null) {
+      Navigator.of(context).pop(date);
     }
   }
 
