@@ -4,6 +4,7 @@ class DateUtil {
   static const String yyyyMmddTHHmmssz = 'yyyy-MM-ddTHH:mm:ss.SSSZ';
   static const String HHmm = 'HH:mm';
   static const String yyyyMMdd = 'yyyy-MM-dd';
+  static const String ddMMyyyy = 'dd/MM/yyyy';
 
   static String getDateFormattedFromString(
     String date,
