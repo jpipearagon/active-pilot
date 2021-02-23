@@ -4,11 +4,8 @@ import 'package:aircraft/src/views/profile_view.dart';
 import 'package:aircraft/src/views/register_view.dart';
 import 'package:aircraft/src/widgets/message_widget.dart';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:loading_overlay/loading_overlay.dart';
 import 'package:lottie/lottie.dart';
-
-import 'schedule_view.dart';
 
 class LoginView extends StatefulWidget {
 

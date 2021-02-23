@@ -2,6 +2,7 @@ import 'package:aircraft/src/models/Activities.dart';
 import 'package:aircraft/src/models/Aircraft.dart';
 import 'package:aircraft/src/models/Locations.dart';
 import 'package:aircraft/src/models/UserDetail.dart';
+import 'package:aircraft/src/views/aircraft_detail_view.dart';
 import 'package:flutter/material.dart';
 
 enum Types { location, activity, instructor, aircraft }
@@ -113,7 +114,7 @@ class _SelectDataViewState extends State<SelectDataView> {
                           fontFamily: "Open Sans",
                           fontWeight: FontWeight.w400)),
                   onTap: () {
-
+                    Navigator.of(context).pushNamed(AircraftDetailView.routeName, arguments: {"aircraft": aircraft});
                   },
                 ),
               ),

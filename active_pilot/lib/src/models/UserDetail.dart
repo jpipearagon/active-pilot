@@ -154,7 +154,7 @@ class Photo {
         return Photo(
             bucket: json['bucket'],
             eTag: json['eTag'],
-            id: json['id'],
+            id: json['_id'],
             key: json['key'],
             location: json['location'],
             url: json['url'],
@@ -165,7 +165,7 @@ class Photo {
         final Map<String, dynamic> data = new Map<String, dynamic>();
         data['bucket'] = this.bucket;
         data['eTag'] = this.eTag;
-        data['id'] = this.id;
+        data['_id'] = this.id;
         data['key'] = this.key;
         data['location'] = this.location;
         data['url'] = this.url;
