@@ -1,7 +1,5 @@
-import 'package:aircraft/src/apis/user_detail_api.dart';
 import 'package:aircraft/src/bloc/profile_bloc.dart';
 import 'package:aircraft/src/models/UserDetail.dart';
-import 'package:aircraft/src/sharedpreferences/shared_preferences_user.dart';
 import 'package:aircraft/src/views/logbook_view.dart';
 import 'package:aircraft/src/views/menu_view.dart';
 import 'package:flutter/material.dart';
@@ -11,9 +9,7 @@ import 'package:lottie/lottie.dart';
 import 'edit_profile_view.dart';
 import 'endorsment_view.dart';
 
-
 class ProfileView extends StatefulWidget {
-
   static final routeName = "profile";
 
   @override
@@ -21,7 +17,6 @@ class ProfileView extends StatefulWidget {
 }
 
 class _ProfileViewState extends State<ProfileView> {
-
   final _profileBloc = ProfileBloc();
   final _pageController = PageController();
   int _currentMenu = 0;
@@ -50,35 +45,25 @@ class _ProfileViewState extends State<ProfileView> {
     return LoadingOverlay(
         color: Colors.white,
         opacity: 1.0,
-        progressIndicator: Lottie.asset(
-            'assets/gifs/35718-loader.json',
-            width: 100,
-            height: 100
-        ),
+        progressIndicator: Lottie.asset('assets/gifs/35718-loader.json',
+            width: 100, height: 100),
         isLoading: _isLoading,
-        child: _app(context)
-    );
+        child: _app(context));
   }
 
   Widget _app(BuildContext context) {
-
     final size = MediaQuery.of(context).size;
 
     return Scaffold(
       appBar: AppBar(
           elevation: 0,
           backgroundColor: Color.fromRGBO(4, 41, 68, 1),
-          leading: new Container()
-      ),
-      endDrawer: Drawer(
-        child: MenuView()
-      ),
+          leading: new Container()),
+      endDrawer: Drawer(child: MenuView()),
       body: Container(
         width: double.infinity,
         height: double.infinity,
-        decoration: BoxDecoration(
-            color: Color.fromRGBO(4, 41, 68, 1)
-        ),
+        decoration: BoxDecoration(color: Color.fromRGBO(4, 41, 68, 1)),
         child: Stack(
           children: [
             Positioned(
@@ -95,30 +80,27 @@ class _ProfileViewState extends State<ProfileView> {
                 _profileWidget(),
                 Expanded(
                     child: Container(
-                      decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: new BorderRadius.only(
-                            topLeft: const Radius.circular(40.0),
-                            topRight: const Radius.circular(40.0),
-                          )
+                  decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: new BorderRadius.only(
+                        topLeft: const Radius.circular(40.0),
+                        topRight: const Radius.circular(40.0),
+                      )),
+                  child: Column(
+                    children: <Widget>[
+                      _menus(),
+                      Container(
+                        width: double.infinity,
+                        height: 1,
+                        decoration:
+                            BoxDecoration(color: Color.fromRGBO(0, 0, 0, 0.11)),
                       ),
-                      child: Column(
-                        children: <Widget>[
-                          _menus(),
-                          Container(
-                            width: double.infinity,
-                            height: 1,
-                            decoration: BoxDecoration(
-                              color: Color.fromRGBO(0,0,0,0.11)
-                            ),
-                          ),
-                          Expanded(
-                            child: _pages(),
-                          )
-                        ],
-                      ),
-                    )
-                )
+                      Expanded(
+                        child: _pages(),
+                      )
+                    ],
+                  ),
+                ))
               ],
             ),
           ],
@@ -131,15 +113,17 @@ class _ProfileViewState extends State<ProfileView> {
     final size = MediaQuery.of(context).size;
     return StreamBuilder(
         stream: _profileBloc.streamProfile,
-        builder: (BuildContext context, AsyncSnapshot<UserDetail> snapshot)
-        {
+        builder: (BuildContext context, AsyncSnapshot<UserDetail> snapshot) {
           if (snapshot.hasData) {
             return Container(
               width: double.infinity,
               height: size.height * 0.3,
               child: Container(
                 height: size.height * 0.20,
-                padding: EdgeInsets.only(top: size.height*0.02, left: size.height*0.067, right: size.height*0.067),
+                padding: EdgeInsets.only(
+                    top: size.height * 0.02,
+                    left: size.height * 0.067,
+                    right: size.height * 0.067),
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: _profileView(snapshot.data),
@@ -148,8 +132,7 @@ class _ProfileViewState extends State<ProfileView> {
             );
           }
           return Container();
-        }
-    );
+        });
   }
 
   List<Widget> _profileView(UserDetail userDetail) {
@@ -161,68 +144,79 @@ class _ProfileViewState extends State<ProfileView> {
         backgroundColor: Colors.transparent,
         backgroundImage: AssetImage("assets/images/defaultprofile.png"),
       ),
-      SizedBox(width: 22,),
+      SizedBox(
+        width: 22,
+      ),
       Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text("${userDetail.firstName} ${userDetail.lastName}",
+          Text(
+            "${userDetail.firstName} ${userDetail.lastName}",
             style: TextStyle(
                 fontFamily: "Poppins",
                 fontSize: 18,
-                fontWeight: FontWeight.w600 ,
-                color: Colors.white// semi-bold
-            ),
+                fontWeight: FontWeight.w600,
+                color: Colors.white // semi-bold
+                ),
           ),
-          SizedBox(height: 4,),
-          Text("${userDetail.role.toUpperCase()}",
+          SizedBox(
+            height: 4,
+          ),
+          Text(
+            "${userDetail.role.toUpperCase()}",
             style: TextStyle(
                 fontFamily: "Poppins",
                 fontSize: 11,
-                fontWeight: FontWeight.w500 ,
-                color: Color.fromRGBO(223, 173, 78, 1)
-            ),
+                fontWeight: FontWeight.w500,
+                color: Color.fromRGBO(223, 173, 78, 1)),
           ),
-          SizedBox(height: 24,),
+          SizedBox(
+            height: 24,
+          ),
           Row(
             children: [
               Column(
                 children: [
-                  Text("0",
+                  Text(
+                    "0",
                     style: TextStyle(
                         fontFamily: "Poppins",
                         fontSize: 18,
-                        fontWeight: FontWeight.w600 ,
-                        color: Colors.white// semi-bold
-                    ),
+                        fontWeight: FontWeight.w600,
+                        color: Colors.white // semi-bold
+                        ),
                   ),
-                  Text("Total Hours",
+                  Text(
+                    "Total Hours",
                     style: TextStyle(
                         fontFamily: "Open Sans",
                         fontSize: 11,
-                        fontWeight: FontWeight.w400 ,
-                        color: Color.fromRGBO(196,196,196,1)
-                    ),
+                        fontWeight: FontWeight.w400,
+                        color: Color.fromRGBO(196, 196, 196, 1)),
                   )
                 ],
               ),
-              SizedBox(width: 35,),
+              SizedBox(
+                width: 35,
+              ),
               Column(
                 children: [
-                  Text("0",
+                  Text(
+                    "0",
                     style: TextStyle(
                         fontFamily: "Poppins",
                         fontSize: 18,
-                        fontWeight: FontWeight.w600 ,
-                        color: Colors.white// semi-bold
-                    ),
+                        fontWeight: FontWeight.w600,
+                        color: Colors.white // semi-bold
+                        ),
                   ),
-                  Text("Last 30 days",
+                  Text(
+                    "Last 30 days",
                     style: TextStyle(
                         fontFamily: "Open Sans",
                         fontSize: 11,
-                        fontWeight: FontWeight.w400 ,
-                        color: Color.fromRGBO(196,196,196,1)
-                    ),
+                        fontWeight: FontWeight.w400,
+                        color: Color.fromRGBO(196, 196, 196, 1)),
                   )
                 ],
               )
@@ -247,33 +241,29 @@ class _ProfileViewState extends State<ProfileView> {
   }
 
   List<Widget> _listMenus() {
-    final menus = ["Logbook", "Endorsment", "Profile"];
+    final menus = ["Logbook", "Endorsment", "Documents"];
     final listMenus = List<Widget>();
     menus.asMap().forEach((idx, val) {
-
       TextStyle style;
       Container container;
-      if(idx == _currentMenu) {
+      if (idx == _currentMenu) {
         style = TextStyle(
-            color: Color.fromRGBO(223,173,78,1),
+            color: Color.fromRGBO(223, 173, 78, 1),
             fontSize: 14,
             fontFamily: "Montserrat",
             fontWeight: FontWeight.w600);
         container = Container(
           height: 1,
-          decoration: BoxDecoration(
-              color: Color.fromRGBO(223,173,78,1)
-          ),
+          decoration: BoxDecoration(color: Color.fromRGBO(223, 173, 78, 1)),
         );
       } else {
         style = TextStyle(
-            color: Color.fromRGBO(106,107,108,1),
+            color: Color.fromRGBO(106, 107, 108, 1),
             fontSize: 14,
             fontFamily: "Montserrat",
             fontWeight: FontWeight.w400);
         container = Container();
       }
-
 
       final menu = Expanded(
         child: FlatButton(

@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:aircraft/src/apis/user_detail_api.dart';
+import 'package:aircraft/src/models/Document.dart';
 import 'package:aircraft/src/models/Endorsment.dart';
 import 'package:aircraft/src/sharedpreferences/shared_preferences_user.dart';
 
@@ -12,10 +13,18 @@ class UserBloc {
   // ignore: close_sinks
   final _endorsmentStreamController =
       StreamController<List<Endorsment>>.broadcast();
-  Function(List<Endorsment>) get scheduleSink =>
+  Function(List<Endorsment>) get endorsmentSink =>
       _endorsmentStreamController.sink.add;
-  Stream<List<Endorsment>> get scheduleStream =>
+  Stream<List<Endorsment>> get endorsmentStream =>
       _endorsmentStreamController.stream;
+
+  // ignore: close_sinks
+  final _documentsStreamController =
+      StreamController<List<Document>>.broadcast();
+  Function(List<Document>) get documentstSink =>
+      _documentsStreamController.sink.add;
+  Stream<List<Document>> get documentsStream =>
+      _documentsStreamController.stream;
 
   factory UserBloc() {
     return _singleton;
@@ -25,19 +34,19 @@ class UserBloc {
     final userDetailApi = UserDetailApi();
     final prefs = SharedPreferencesUser();
 
-    userDetailApi.getUserEndorsment(prefs.userId);
+    final response = await userDetailApi.getUserEndorsment(prefs.userId);
+    endorsmentSink(response);
 
-    /*var timeZoneOffset = DateTime.now().timeZoneOffset;
-    var timeZone = StringUtil.convertNumberToHoursMinutes(
-        (timeZoneOffset.inMinutes / 60).toString());
+    return null;
+  }
 
-    String startDate =
-        DateUtil.getDateStringFromDateTime(date, DateUtil.yyyyMMdd);
+  Future<void> loadDocuments() async {
+    final userDetailApi = UserDetailApi();
+    final prefs = SharedPreferencesUser();
 
-    final response = await scheduleApi.getScheduleByDate(
-        '$startDate' + 'T00:00:00$timeZone',
-        '$startDate' + 'T23:59:59$timeZone');
-    scheduleSink(response);*/
+    final response = await userDetailApi.getUserDocuments(prefs.userId);
+    documentstSink(response);
+
     return null;
   }
 }
