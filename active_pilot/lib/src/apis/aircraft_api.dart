@@ -35,6 +35,8 @@ class AircraftApi {
         "activity" : activityId,
         "_populate[0]": "aircraftMaker",
         "_populate[1]": "aircraftModel",
+        "_populate[2]": "aircraftCategory",
+        "_populate[3]": "activityType",
       };
 
       for (var i = 0; i < aircraftCategory.length; i++) {

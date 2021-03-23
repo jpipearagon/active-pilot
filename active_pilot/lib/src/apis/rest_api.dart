@@ -1,3 +1,4 @@
+import 'package:aircraft/src/models/CodeError.dart';
 import 'package:aircraft/src/models/LoginUser.dart';
 import 'package:aircraft/src/sharedpreferences/shared_preferences_user.dart';
 import 'package:dio/dio.dart';
@@ -44,7 +45,6 @@ class RestApi {
       final Map<String, String> headers = {
         HttpHeaders.userAgentHeader: "CFNetwork/1121.2.1 Darwin/19.3.0",
         HttpHeaders.contentTypeHeader: "application/x-www-form-urlencoded",
-        HttpHeaders.contentLengthHeader: "${body.length}",
       };
       final prefs = SharedPreferencesUser();
       if(prefs.jwtToken.isNotEmpty) {
@@ -93,7 +93,7 @@ class RestApi {
   dynamic _response(http.Response response) {
     switch (response.statusCode) {
       case 200:
-        var responseJson = json.decode(response.body.toString());
+        final responseJson = json.decode(response.body.toString());
         print(responseJson);
         return responseJson;
       case 400:
@@ -103,7 +103,9 @@ class RestApi {
       case 403:
         throw UnauthorisedException(response.body.toString());
       case 500:
-        throw BadRequestException(response.body.toString());
+        final responseJson = json.decode(response.body.toString());
+        final codeError = CodeError.fromJson(responseJson);
+        throw InternalServerException(codeError.message);
       default:
         throw FetchDataException(
             'Error occured while Communication with Server with StatusCode : ${response.statusCode}');

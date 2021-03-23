@@ -6,7 +6,7 @@ class LoginUserApi {
 
   final RestApi _restApi = RestApi();
 
-  Future<LoginUser> loginUser(String username, String password) async {
+  Future<dynamic> loginUser(String username, String password) async {
     try {
       final Map<String, String> params = {
         "username": username,
@@ -15,8 +15,7 @@ class LoginUserApi {
       final response = await _restApi.post(endPoint: "/token/login", queryParameters: params);
       return LoginUser.fromJson(response);
     } catch (e) {
-      print(e.toString());
-      return null;
+      return e.toString();
     }
   }
 }

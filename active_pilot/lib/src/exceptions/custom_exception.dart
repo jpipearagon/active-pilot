@@ -25,3 +25,7 @@ class UnauthorisedException extends CustomException {
 class InvalidInputException extends CustomException {
   InvalidInputException([String message]) : super(message, "Invalid Input: ");
 }
+
+class InternalServerException extends CustomException {
+  InternalServerException([message]) : super(message, "Invalid Request: ");
+}

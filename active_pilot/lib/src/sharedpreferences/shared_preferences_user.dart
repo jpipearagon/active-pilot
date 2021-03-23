@@ -49,4 +49,28 @@ class SharedPreferencesUser {
   set userId(String value) {
     prefs.setString("userId", value);
   }
+
+  String get role {
+    return prefs.getString("role") ?? "";
+  }
+
+  set role(String value) {
+    prefs.setString("role", value);
+  }
+
+  bool get isPilot {
+    return prefs.getBool("is_pilot") ?? false;
+  }
+
+  set isPilot(bool value) {
+    prefs.setBool("is_pilot", value);
+  }
+
+  bool get flyAlone {
+    return prefs.getBool("fly_alone") ?? false;
+  }
+
+  set flyAlone(bool value) {
+    prefs.setBool("fly_alone", value);
+  }
 }

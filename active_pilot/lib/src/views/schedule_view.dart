@@ -1,6 +1,9 @@
 import 'package:aircraft/src/Constants/application_colors.dart';
 import 'package:aircraft/src/bloc/schedule_bloc.dart';
 import 'package:aircraft/src/models/Reservation.dart';
+import 'package:aircraft/src/models/UserRole.dart';
+import 'package:aircraft/src/sharedpreferences/shared_preferences_user.dart';
+import 'package:aircraft/src/views/header_view.dart';
 import 'package:aircraft/src/views/reservation_view.dart';
 import 'package:aircraft/utils/colors_util.dart';
 import 'package:aircraft/utils/date_util.dart';
@@ -32,9 +35,7 @@ class _ScheduleViewState extends State<ScheduleView> {
       backgroundColor: ApplicationColors().primaryColor,
       body: Column(
         children: [
-          Container(
-            child: buildTitle(),
-          ),
+          HeaderView(title: "Schedule", subtitle: "Choose a date for start"),
           Expanded(
             child: Container(
               padding: EdgeInsets.only(
@@ -137,199 +138,177 @@ class _ScheduleViewState extends State<ScheduleView> {
   }
 
   Widget buildEvent(Reservation reservation) {
-    return Container(
-      child: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.only(
-              top: 12.0,
-              left: 20.0,
-              right: 20.0,
-            ),
-            child: Row(
-              children: [
-                Column(
-                  children: [
-                    Text(
-                      DateUtil.getDateFormattedFromString(reservation.start,
-                          DateUtil.yyyyMmddTHHmmssz, DateUtil.HHmm),
-                      style: GoogleFonts.montserrat(
-                          //fontFamily: "Montserrat",
-                          fontSize: 12.0,
-                          fontWeight: FontWeight.w600,
-                          color: Color.fromRGBO(165, 164, 164, 1) // semi-bold
-                          ),
-                    ),
-                    SizedBox(
-                      height: 5,
-                    ),
-                    Text(
-                      DateUtil.getDateFormattedFromString(reservation.end,
-                          DateUtil.yyyyMmddTHHmmssz, DateUtil.HHmm),
-                      style: GoogleFonts.montserrat(
-                          //fontFamily: "Montserrat",
-                          fontSize: 12.0,
-                          fontWeight: FontWeight.w600,
-                          color: Color.fromRGBO(165, 164, 164, 1) // semi-bold
-                          ),
-                    ),
-                  ],
-                ),
-                SizedBox(
-                  width: 11,
-                ),
-                Container(
-                  width: 1,
-                  height: MediaQuery.of(context).size.height * 0.090,
-                  decoration:
-                      BoxDecoration(color: Color.fromRGBO(106, 107, 108, 1)),
-                ),
-                SizedBox(
-                  width: 13,
-                ),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Text(
-                          "${reservation.pilot.firstName} ${reservation.pilot.lastName}" ,
-                          style: GoogleFonts.montserrat(
-                              //fontFamily: "Montserrat",
-                              fontSize: 14.0,
-                              fontWeight: FontWeight.w500,
-                              color: Color.fromRGBO(4, 41, 68, 1) // semi-bold
-                              ),
-                        ),
-                      ],
-                    ),
-                    SizedBox(
-                      height: 5,
-                    ),
-                    Text(
-                      reservation.activity.name,
-                      style: GoogleFonts.openSans(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w400,
-                          color: Color.fromRGBO(4, 41, 68, 1) // semi-bold
-                          ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.only(
-                        top: 8.0,
-                      ),
-                      child: Container(
-                        decoration: BoxDecoration(
-                            color: ColorsUtils.getColorFromHex(
-                                reservation.status.color),
-                            border: Border.all(
-                              color: Colors.transparent,
+
+    final prefs = SharedPreferencesUser();
+    var title = "";
+    var subtitle = "";
+    final Role role = enumFromString(Role.values, prefs.role);
+    switch (role) {
+      case Role.instructor:
+        title = "${reservation.pilot.firstName} ${reservation.pilot.lastName}";
+        subtitle = "${reservation.activity.name}";
+        break;
+
+      case Role.pilot:
+        if (prefs.isPilot) {
+          title = prefs.flyAlone ? reservation.instructor.scheduleName : reservation.aircraft.name;
+          subtitle = reservation.activity.name;
+        }
+        break;
+
+      case Role.student:
+      case Role.registered:
+        title = reservation.instructor.scheduleName;
+        subtitle = reservation.activity.name;
+        break;
+    }
+
+    return GestureDetector(
+      child: Container(
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.only(
+                top: 12.0,
+                left: 20.0,
+                right: 20.0,
+              ),
+              child: Row(
+                children: [
+                  Column(
+                    children: [
+                      Text(
+                        DateUtil.getDateFormattedFromString(reservation.start,
+                            DateUtil.yyyyMmddTHHmmssz, DateUtil.HHmm),
+                        style: GoogleFonts.montserrat(
+                            //fontFamily: "Montserrat",
+                            fontSize: 12.0,
+                            fontWeight: FontWeight.w600,
+                            color: Color.fromRGBO(165, 164, 164, 1) // semi-bold
                             ),
-                            borderRadius:
-                                BorderRadius.all(Radius.circular(12))),
-                        child: Padding(
-                          padding: const EdgeInsets.fromLTRB(
-                            10.0,
-                            1.0,
-                            10.0,
-                            1.0,
-                          ),
-                          child: Text(
-                            reservation.status.name,
-                            style: GoogleFonts.openSans(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w400,
-                                color: Colors.white // semi-bold
+                      ),
+                      SizedBox(
+                        height: 5,
+                      ),
+                      Text(
+                        DateUtil.getDateFormattedFromString(reservation.end,
+                            DateUtil.yyyyMmddTHHmmssz, DateUtil.HHmm),
+                        style: GoogleFonts.montserrat(
+                            //fontFamily: "Montserrat",
+                            fontSize: 12.0,
+                            fontWeight: FontWeight.w600,
+                            color: Color.fromRGBO(165, 164, 164, 1) // semi-bold
+                            ),
+                      ),
+                    ],
+                  ),
+                  SizedBox(
+                    width: 11,
+                  ),
+                  Container(
+                    width: 1,
+                    height: MediaQuery.of(context).size.height * 0.090,
+                    decoration:
+                        BoxDecoration(color: Color.fromRGBO(106, 107, 108, 1)),
+                  ),
+                  SizedBox(
+                    width: 13,
+                  ),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Text(
+                            title,
+                            style: GoogleFonts.montserrat(
+                                //fontFamily: "Montserrat",
+                                fontSize: 14.0,
+                                fontWeight: FontWeight.w500,
+                                color: Color.fromRGBO(4, 41, 68, 1) // semi-bold
                                 ),
                           ),
+                        ],
+                      ),
+                      SizedBox(
+                        height: 5,
+                      ),
+                      Text(
+                        subtitle,
+                        style: GoogleFonts.openSans(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w400,
+                            color: Color.fromRGBO(4, 41, 68, 1) // semi-bold
+                            ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.only(
+                          top: 8.0,
+                        ),
+                        child: Container(
+                          decoration: BoxDecoration(
+                              color: ColorsUtils.getColorFromHex(
+                                  reservation.status.color),
+                              border: Border.all(
+                                color: Colors.transparent,
+                              ),
+                              borderRadius:
+                                  BorderRadius.all(Radius.circular(12))),
+                          child: Padding(
+                            padding: const EdgeInsets.fromLTRB(
+                              10.0,
+                              1.0,
+                              10.0,
+                              1.0,
+                            ),
+                            child: Text(
+                              reservation.status.name,
+                              style: GoogleFonts.openSans(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w400,
+                                  color: Colors.white // semi-bold
+                                  ),
+                            ),
+                          ),
                         ),
                       ),
-                    ),
-                  ],
-                ),
-              ],
+                    ],
+                  ),
+                ],
+              ),
             ),
-          ),
-          SizedBox(
-            height: 12,
-          ),
-          Container(
-            height: 0.3,
-            width: double.infinity,
-            decoration: BoxDecoration(color: Color.fromRGBO(106, 107, 108, 1)),
-          ),
-        ],
+            SizedBox(
+              height: 12,
+            ),
+            Container(
+              height: 0.3,
+              width: double.infinity,
+              decoration: BoxDecoration(color: Color.fromRGBO(106, 107, 108, 1)),
+            ),
+          ],
+        ),
       ),
+      onTap: () => goToReservation(),
     );
   }
 
-  Widget buildTitle() {
-    double paddingTop = MediaQuery.of(context).padding.top;
+  void goToReservation() {
+    final prefs = SharedPreferencesUser();
+    final Role role = enumFromString(Role.values, prefs.role);
+    switch (role) {
+      case Role.instructor:
 
-    return Padding(
-      padding: const EdgeInsets.only(
-        left: 20.0,
-        right: 20.0,
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            child: Padding(
-              padding: EdgeInsets.only(
-                top: paddingTop + 10.0,
-                bottom: 4.0,
-              ),
-              child: InkWell(
-                onTap: () {
-                  Navigator.pop(context);
-                },
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    Icon(
-                      Icons.arrow_back_ios,
-                      size: 12.0,
-                      color: ApplicationColors().backArrow,
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.only(
-                        left: 11.0,
-                      ),
-                      child: Text(
-                        "Schedule",
-                        style: GoogleFonts.montserrat(
-                            //fontFamily: "Montserrat",
-                            fontSize: 20.0,
-                            fontWeight: FontWeight.w600,
-                            color: Colors.white // semi-bold
-                            ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-          Container(
-            child: Padding(
-              padding: const EdgeInsets.only(
-                left: 23.0,
-                top: 0.0,
-              ),
-              child: Text(
-                "Choose a date for start",
-                style: GoogleFonts.openSans(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w400,
-                    color: Colors.white // semi-bold
-                    ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
+        break;
+
+      case Role.pilot:
+
+        break;
+
+      case Role.student:
+      case Role.registered:
+
+        break;
+    }
   }
 
   void _onDaySelected(DateTime day, List events, List holidays) {

@@ -2,10 +2,12 @@ import 'package:aircraft/src/apis/activities_api.dart';
 import 'package:aircraft/src/apis/aircraft_api.dart';
 import 'package:aircraft/src/apis/instructor_api.dart';
 import 'package:aircraft/src/apis/locations_api.dart';
+import 'package:aircraft/src/constants/application_colors.dart';
 import 'package:aircraft/src/models/Activities.dart';
 import 'package:aircraft/src/models/Aircraft.dart';
 import 'package:aircraft/src/models/Locations.dart';
 import 'package:aircraft/src/models/UserDetail.dart';
+import 'package:aircraft/src/views/header_view.dart';
 import 'package:aircraft/src/views/select_data_view.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -64,426 +66,402 @@ class _ReservationViewState extends State<ReservationView> {
     final size = MediaQuery.of(context).size;
 
     return Scaffold(
-      appBar: AppBar(
-        centerTitle: false,
-        titleSpacing: 0.0,
-        title:  Transform(
-          // you can forcefully translate values left side using Transform
-          transform:  Matrix4.translationValues(14.0, 0.0, 0.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                  "Reservation",
-                  style: TextStyle(
-                      fontFamily: "Montserrat",
-                      fontSize: 30,
-                      fontWeight: FontWeight.w600 ,
-                      color: Colors.white// semi-bold
-                  )
-              ),
-              Text(
-                  "Please sign in to continue.",
-                  style: TextStyle(
-                      fontFamily: "Open Sans",
-                      fontSize: 14,
-                      fontWeight: FontWeight.w400 ,
-                      color: Colors.white// semi-bold
-                  )
-              )
-            ],
-          ),
-        ),
-        backgroundColor: Color.fromRGBO(4, 41, 68, 1),
-      ),
-      body: Container(
-          padding: EdgeInsets.only(top: 10),
-          width: double.infinity,
-          height: double.infinity,
-          decoration: BoxDecoration(
-              color: Color.fromRGBO(4, 41, 68, 1)
-          ),
-          child: Container(
-            padding: EdgeInsets.only(top: 42, left: 36, right: 36),
-            decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: new BorderRadius.only(
-                  topLeft: const Radius.circular(40.0),
-                  topRight: const Radius.circular(40.0),
-                )
-            ),
-            child: SingleChildScrollView(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  SizedBox(
-                    height: 55,
-                    child: Row(
+      backgroundColor: ApplicationColors().primaryColor,
+      body: Column(
+        children: [
+          HeaderView(title: "Reservation", subtitle: "Select all the fields to make a reservation"),
+          Expanded(
+            child: Container(
+                padding: EdgeInsets.only(top: 10),
+                width: double.infinity,
+                height: double.infinity,
+                decoration: BoxDecoration(
+                    color: Color.fromRGBO(4, 41, 68, 1)
+                ),
+                child: Container(
+                  padding: EdgeInsets.only(top: 42, left: 36, right: 36),
+                  decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: new BorderRadius.only(
+                        topLeft: const Radius.circular(40.0),
+                        topRight: const Radius.circular(40.0),
+                      )
+                  ),
+                  child: SingleChildScrollView(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Expanded(
-                          child: Text(
-                              "Start",
-                              style: TextStyle(
-                                  fontFamily: "Open Sans",
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w400 ,
-                                  color: Color.fromRGBO(4,41,68,1)// semi-bold
-                              )
-                          ),
-                        ),
-                        Expanded(
-                          child: TextField(
-                            readOnly: true,
-                            controller: _textEditingControllerDateStart,
-                            keyboardType: TextInputType.datetime,
-                            style: TextStyle(
-                              color: Color.fromRGBO(106,107,108,1),
-                              fontSize: 14,
-                              fontFamily: "Open Sans",
-                              fontWeight: FontWeight.w400,
-                            ),
-                            decoration: InputDecoration(
-                              border: InputBorder.none,
-                              hintText: formatter.format(_chosenDateTimeStart),
-                              hintStyle: TextStyle(
-                                color: Color.fromRGBO(106,107,108,1),
-                                fontSize: 14,
-                                fontFamily: "Open Sans",
-                                fontWeight: FontWeight.w400,),
-                            ),
-                            onTap: () => _selectDateStart(context),
-                          ),
-                        ),
                         SizedBox(
-                          width: 8,
-                        ),
-                        Image(
-                          width: 12,
-                          height: 19,
-                          image: AssetImage("assets/images/down.png"),
-                        )
-                      ],
-                    ),
-                  ),
-                  Container(
-                    padding: EdgeInsets.symmetric(horizontal: 27),
-                    height: 1,
-                    decoration: BoxDecoration(
-                      color: Color.fromRGBO(238,238,238,1)
-                    ),
-                  ),
-                  SizedBox(
-                    height: 55,
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                              "End",
-                              style: TextStyle(
-                                  fontFamily: "Open Sans",
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w400 ,
-                                  color: Color.fromRGBO(4,41,68,1)// semi-bold
-                              )
-                          ),
-                        ),
-                        Expanded(
-                          child: TextField(
-                            readOnly: true,
-                            controller: _textEditingControllerDateEnd,
-                            keyboardType: TextInputType.datetime,
-                            style: TextStyle(
-                                color: Color.fromRGBO(106,107,108,1),
-                                fontSize: 14,
-                                fontFamily: "Open Sans",
-                                fontWeight: FontWeight.w400,
-                            ),
-                            decoration: InputDecoration(
-                              border: InputBorder.none,
-                              hintText: formatter.format(_chosenDateTimeEnd),
-                              hintStyle: TextStyle(
-                                color: Color.fromRGBO(106,107,108,1),
-                                fontSize: 14,
-                                fontFamily: "Open Sans",
-                                fontWeight: FontWeight.w400,),
-                            ),
-                            onTap: () => _selectDateEnd(context),
-                          ),
-                        ),
-                        SizedBox(
-                          width: 8,
-                        ),
-                        Image(
-                          width: 12,
-                          height: 19,
-                          image: AssetImage("assets/images/down.png"),
-                        )
-                      ],
-                    ),
-                  ),
-                  Container(
-                    padding: EdgeInsets.symmetric(horizontal: 27),
-                    height: 1,
-                    decoration: BoxDecoration(
-                        color: Color.fromRGBO(238,238,238,1)
-                    ),
-                  ),
-                  showErrorEndDate(),
-                  SizedBox(
-                    height: size.height * 0.0625,
-                  ),
-                  Text(
-                      "Location",
-                      style: TextStyle(
-                          fontFamily: "Montserrat",
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600 ,
-                          color: Color.fromRGBO(4,41,68,1)// semi-bold
-                      )
-                  ),
-                  GestureDetector(
-                    child: SizedBox(
-                      height: 60,
-                      child: Row(
-                        children: [
-                          Icon(
-                            Icons.location_on,
-                            color: Color.fromRGBO(106,107,108,1),
-                          ),
-                          SizedBox(
-                            width: 16,
-                          ),
-                          Expanded(
-                            child: Text(
-                                _strLocation,
-                                style: TextStyle(
-                                    fontFamily: "Open Sans",
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w400 ,
-                                    color: Color.fromRGBO(4,41,68,1)// semi-bold
-                                )
-                            ),
-                          ),
-                          Image(
-                            width: 12,
-                            height: 19,
-                            image: AssetImage("assets/images/down.png"),
-                          )
-                        ],
-                      ),
-                    ),
-                    onTap: () => _showData(Types.location),
-                  ),
-                  Container(
-                    padding: EdgeInsets.symmetric(horizontal: 27),
-                    height: 1,
-                    decoration: BoxDecoration(
-                        color: Color.fromRGBO(238,238,238,1)
-                    ),
-                  ),
-                  SizedBox(
-                    height: size.height * 0.029,
-                  ),
-                  Text(
-                      "Activity",
-                      style: TextStyle(
-                          fontFamily: "Montserrat",
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600 ,
-                          color: Color.fromRGBO(4,41,68,1)// semi-bold
-                      )
-                  ),
-                  GestureDetector(
-                    child: SizedBox(
-                      height: 60,
-                      child: Row(
-                        children: [
-                          Icon(
-                            Icons.accessibility,
-                            color: Color.fromRGBO(106,107,108,1),
-                          ),
-                          SizedBox(
-                            width: 16,
-                          ),
-                          Expanded(
-                            child: Text(
-                                _strActivity,
-                                style: TextStyle(
-                                    fontFamily: "Open Sans",
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w400 ,
-                                    color: Color.fromRGBO(4,41,68,1)// semi-bold
-                                )
-                            ),
-                          ),
-                          Image(
-                            width: 12,
-                            height: 19,
-                            image: AssetImage("assets/images/down.png"),
-                          )
-                        ],
-                      ),
-                    ),
-                    onTap: () => _showData(Types.activity),
-                  ),
-                  Container(
-                    padding: EdgeInsets.symmetric(horizontal: 27),
-                    height: 1,
-                    decoration: BoxDecoration(
-                        color: Color.fromRGBO(238,238,238,1)
-                    ),
-                  ),
-                  SizedBox(
-                    height: size.height * 0.029,
-                  ),
-                  Text(
-                      "Instructor",
-                      style: TextStyle(
-                          fontFamily: "Montserrat",
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600 ,
-                          color: Color.fromRGBO(4,41,68,1)// semi-bold
-                      )
-                  ),
-                  GestureDetector(
-                    child: SizedBox(
-                      height: 60,
-                      child: Row(
-                        children: [
-                          Icon(
-                            Icons.person,
-                            color: Color.fromRGBO(106,107,108,1),
-                          ),
-                          SizedBox(
-                            width: 16,
-                          ),
-                          Expanded(
-                            child: Text(
-                                _strInstructor,
-                                style: TextStyle(
-                                    fontFamily: "Open Sans",
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w400 ,
-                                    color: Color.fromRGBO(4,41,68,1)// semi-bold
-                                )
-                            ),
-                          ),
-                          Image(
-                            width: 12,
-                            height: 19,
-                            image: AssetImage("assets/images/down.png"),
-                          )
-                        ],
-                      ),
-                    ),
-                    onTap: isAvailableInstructor() ? () => _showData(Types.instructor) : null,
-                  ),
-                  Container(
-                    padding: EdgeInsets.symmetric(horizontal: 27),
-                    height: 1,
-                    decoration: BoxDecoration(
-                        color: Color.fromRGBO(238,238,238,1)
-                    ),
-                  ),
-                  SizedBox(
-                    height: size.height * 0.029,
-                  ),
-                  Text(
-                      "Aircraft",
-                      style: TextStyle(
-                          fontFamily: "Montserrat",
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600 ,
-                          color: Color.fromRGBO(4,41,68,1)// semi-bold
-                      )
-                  ),
-                  GestureDetector(
-                    child: SizedBox(
-                      height: 60,
-                      child: Row(
-                        children: [
-                          Icon(
-                            Icons.airplanemode_active,
-                            color: Color.fromRGBO(106,107,108,1),
-                          ),
-                          SizedBox(
-                            width: 16,
-                          ),
-                          Expanded(
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                    _strAircraftRegistration,
-                                    style: TextStyle(
-                                        fontFamily: "Montserrat",
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.w600 ,
-                                        color: Color.fromRGBO(0,0,0,1)// semi-bold
-                                    )
-                                ),
-                                Text(
-                                    _strAircraft,
+                          height: 55,
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: Text(
+                                    "Start",
                                     style: TextStyle(
                                         fontFamily: "Open Sans",
                                         fontSize: 14,
                                         fontWeight: FontWeight.w400 ,
-                                        color: Color.fromRGBO(0,0,0,1)// semi-bold
+                                        color: Color.fromRGBO(4,41,68,1)// semi-bold
                                     )
                                 ),
+                              ),
+                              Expanded(
+                                child: TextField(
+                                  readOnly: true,
+                                  controller: _textEditingControllerDateStart,
+                                  keyboardType: TextInputType.datetime,
+                                  style: TextStyle(
+                                    color: Color.fromRGBO(106,107,108,1),
+                                    fontSize: 14,
+                                    fontFamily: "Open Sans",
+                                    fontWeight: FontWeight.w400,
+                                  ),
+                                  decoration: InputDecoration(
+                                    border: InputBorder.none,
+                                    hintText: formatter.format(_chosenDateTimeStart),
+                                    hintStyle: TextStyle(
+                                      color: Color.fromRGBO(106,107,108,1),
+                                      fontSize: 14,
+                                      fontFamily: "Open Sans",
+                                      fontWeight: FontWeight.w400,),
+                                  ),
+                                  onTap: () => _selectDateStart(context),
+                                ),
+                              ),
+                              SizedBox(
+                                width: 8,
+                              ),
+                              Image(
+                                width: 12,
+                                height: 19,
+                                image: AssetImage("assets/images/down.png"),
+                              )
+                            ],
+                          ),
+                        ),
+                        Container(
+                          padding: EdgeInsets.symmetric(horizontal: 27),
+                          height: 1,
+                          decoration: BoxDecoration(
+                            color: Color.fromRGBO(238,238,238,1)
+                          ),
+                        ),
+                        SizedBox(
+                          height: 55,
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: Text(
+                                    "End",
+                                    style: TextStyle(
+                                        fontFamily: "Open Sans",
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w400 ,
+                                        color: Color.fromRGBO(4,41,68,1)// semi-bold
+                                    )
+                                ),
+                              ),
+                              Expanded(
+                                child: TextField(
+                                  readOnly: true,
+                                  controller: _textEditingControllerDateEnd,
+                                  keyboardType: TextInputType.datetime,
+                                  style: TextStyle(
+                                      color: Color.fromRGBO(106,107,108,1),
+                                      fontSize: 14,
+                                      fontFamily: "Open Sans",
+                                      fontWeight: FontWeight.w400,
+                                  ),
+                                  decoration: InputDecoration(
+                                    border: InputBorder.none,
+                                    hintText: formatter.format(_chosenDateTimeEnd),
+                                    hintStyle: TextStyle(
+                                      color: Color.fromRGBO(106,107,108,1),
+                                      fontSize: 14,
+                                      fontFamily: "Open Sans",
+                                      fontWeight: FontWeight.w400,),
+                                  ),
+                                  onTap: () => _selectDateEnd(context),
+                                ),
+                              ),
+                              SizedBox(
+                                width: 8,
+                              ),
+                              Image(
+                                width: 12,
+                                height: 19,
+                                image: AssetImage("assets/images/down.png"),
+                              )
+                            ],
+                          ),
+                        ),
+                        Container(
+                          padding: EdgeInsets.symmetric(horizontal: 27),
+                          height: 1,
+                          decoration: BoxDecoration(
+                              color: Color.fromRGBO(238,238,238,1)
+                          ),
+                        ),
+                        showErrorEndDate(),
+                        SizedBox(
+                          height: size.height * 0.0625,
+                        ),
+                        Text(
+                            "Location",
+                            style: TextStyle(
+                                fontFamily: "Montserrat",
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600 ,
+                                color: Color.fromRGBO(4,41,68,1)// semi-bold
+                            )
+                        ),
+                        GestureDetector(
+                          child: SizedBox(
+                            height: 60,
+                            child: Row(
+                              children: [
+                                Icon(
+                                  Icons.location_on,
+                                  color: Color.fromRGBO(106,107,108,1),
+                                ),
+                                SizedBox(
+                                  width: 16,
+                                ),
+                                Expanded(
+                                  child: Text(
+                                      _strLocation,
+                                      style: TextStyle(
+                                          fontFamily: "Open Sans",
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.w400 ,
+                                          color: Color.fromRGBO(4,41,68,1)// semi-bold
+                                      )
+                                  ),
+                                ),
+                                Image(
+                                  width: 12,
+                                  height: 19,
+                                  image: AssetImage("assets/images/down.png"),
+                                )
                               ],
                             ),
                           ),
-                          Image(
-                            width: 12,
-                            height: 19,
-                            image: AssetImage("assets/images/down.png"),
-                          )
-                        ],
-                      ),
-                    ),
-                    onTap: isAvailableAircraft() ? () => _showData(Types.aircraft) : null,
-                  ),
-                  Container(
-                    padding: EdgeInsets.symmetric(horizontal: 27),
-                    height: 1,
-                    decoration: BoxDecoration(
-                        color: Color.fromRGBO(238,238,238,1)
-                    ),
-                  ),
-                  SizedBox(
-                    height: size.height * 0.073,
-                  ),
-                  Center(
-                    child: ButtonTheme(
-                      minWidth: size.width * 0.48,
-                      height: size.height * 0.064,
-                      child: RaisedButton(
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(22.5),
-                            side: BorderSide(color: Colors.transparent)
+                          onTap: () => _showData(Types.location),
                         ),
-                        color: isCompletedReservation() ? Color.fromRGBO(223, 173, 78, 1) : Color.fromRGBO(106,107,108,1),
-                        child: Text(
-                          "Continue ",
-                          style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 12,
-                              fontFamily: "Open Sans",
-                              fontWeight: FontWeight.w400),
+                        Container(
+                          padding: EdgeInsets.symmetric(horizontal: 27),
+                          height: 1,
+                          decoration: BoxDecoration(
+                              color: Color.fromRGBO(238,238,238,1)
+                          ),
                         ),
-                        onPressed: isCompletedReservation() ? () => continueReservation(context) : null,
-                      ),
+                        SizedBox(
+                          height: size.height * 0.029,
+                        ),
+                        Text(
+                            "Activity",
+                            style: TextStyle(
+                                fontFamily: "Montserrat",
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600 ,
+                                color: Color.fromRGBO(4,41,68,1)// semi-bold
+                            )
+                        ),
+                        GestureDetector(
+                          child: SizedBox(
+                            height: 60,
+                            child: Row(
+                              children: [
+                                Icon(
+                                  Icons.accessibility,
+                                  color: Color.fromRGBO(106,107,108,1),
+                                ),
+                                SizedBox(
+                                  width: 16,
+                                ),
+                                Expanded(
+                                  child: Text(
+                                      _strActivity,
+                                      style: TextStyle(
+                                          fontFamily: "Open Sans",
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.w400 ,
+                                          color: Color.fromRGBO(4,41,68,1)// semi-bold
+                                      )
+                                  ),
+                                ),
+                                Image(
+                                  width: 12,
+                                  height: 19,
+                                  image: AssetImage("assets/images/down.png"),
+                                )
+                              ],
+                            ),
+                          ),
+                          onTap: () => _showData(Types.activity),
+                        ),
+                        Container(
+                          padding: EdgeInsets.symmetric(horizontal: 27),
+                          height: 1,
+                          decoration: BoxDecoration(
+                              color: Color.fromRGBO(238,238,238,1)
+                          ),
+                        ),
+                        SizedBox(
+                          height: size.height * 0.029,
+                        ),
+                        Text(
+                            "Instructor",
+                            style: TextStyle(
+                                fontFamily: "Montserrat",
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600 ,
+                                color: Color.fromRGBO(4,41,68,1)// semi-bold
+                            )
+                        ),
+                        GestureDetector(
+                          child: SizedBox(
+                            height: 60,
+                            child: Row(
+                              children: [
+                                Icon(
+                                  Icons.person,
+                                  color: Color.fromRGBO(106,107,108,1),
+                                ),
+                                SizedBox(
+                                  width: 16,
+                                ),
+                                Expanded(
+                                  child: Text(
+                                      _strInstructor,
+                                      style: TextStyle(
+                                          fontFamily: "Open Sans",
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.w400 ,
+                                          color: Color.fromRGBO(4,41,68,1)// semi-bold
+                                      )
+                                  ),
+                                ),
+                                Image(
+                                  width: 12,
+                                  height: 19,
+                                  image: AssetImage("assets/images/down.png"),
+                                )
+                              ],
+                            ),
+                          ),
+                          onTap: isAvailableInstructor() ? () => _showData(Types.instructor) : null,
+                        ),
+                        Container(
+                          padding: EdgeInsets.symmetric(horizontal: 27),
+                          height: 1,
+                          decoration: BoxDecoration(
+                              color: Color.fromRGBO(238,238,238,1)
+                          ),
+                        ),
+                        SizedBox(
+                          height: size.height * 0.029,
+                        ),
+                        Text(
+                            "Aircraft",
+                            style: TextStyle(
+                                fontFamily: "Montserrat",
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600 ,
+                                color: Color.fromRGBO(4,41,68,1)// semi-bold
+                            )
+                        ),
+                        GestureDetector(
+                          child: SizedBox(
+                            height: 60,
+                            child: Row(
+                              children: [
+                                Icon(
+                                  Icons.airplanemode_active,
+                                  color: Color.fromRGBO(106,107,108,1),
+                                ),
+                                SizedBox(
+                                  width: 16,
+                                ),
+                                Expanded(
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                          _strAircraftRegistration,
+                                          style: TextStyle(
+                                              fontFamily: "Montserrat",
+                                              fontSize: 14,
+                                              fontWeight: FontWeight.w600 ,
+                                              color: Color.fromRGBO(0,0,0,1)// semi-bold
+                                          )
+                                      ),
+                                      Text(
+                                          _strAircraft,
+                                          style: TextStyle(
+                                              fontFamily: "Open Sans",
+                                              fontSize: 14,
+                                              fontWeight: FontWeight.w400 ,
+                                              color: Color.fromRGBO(0,0,0,1)// semi-bold
+                                          )
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                Image(
+                                  width: 12,
+                                  height: 19,
+                                  image: AssetImage("assets/images/down.png"),
+                                )
+                              ],
+                            ),
+                          ),
+                          onTap: isAvailableAircraft() ? () => _showData(Types.aircraft) : null,
+                        ),
+                        Container(
+                          padding: EdgeInsets.symmetric(horizontal: 27),
+                          height: 1,
+                          decoration: BoxDecoration(
+                              color: Color.fromRGBO(238,238,238,1)
+                          ),
+                        ),
+                        SizedBox(
+                          height: size.height * 0.073,
+                        ),
+                        Center(
+                          child: ButtonTheme(
+                            minWidth: size.width * 0.48,
+                            height: size.height * 0.064,
+                            child: RaisedButton(
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(22.5),
+                                  side: BorderSide(color: Colors.transparent)
+                              ),
+                              color: isCompletedReservation() ? Color.fromRGBO(223, 173, 78, 1) : Color.fromRGBO(106,107,108,1),
+                              child: Text(
+                                "Continue ",
+                                style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 12,
+                                    fontFamily: "Open Sans",
+                                    fontWeight: FontWeight.w400),
+                              ),
+                              onPressed: isCompletedReservation() ? () => continueReservation(context) : null,
+                            ),
+                          ),
+                        ),
+                        SizedBox(
+                          height: size.height * 0.073,
+                        ),
+                      ],
                     ),
                   ),
-                  SizedBox(
-                    height: size.height * 0.073,
-                  ),
-                ],
-              ),
+                )
             ),
-          )
+          ),
+        ],
       ),
     );
   }
@@ -702,7 +680,7 @@ class _ReservationViewState extends State<ReservationView> {
       "endDate": _chosenDateTimeEnd,
       "activityId" : _activity.id,
       "instructorId": _userDetail.id,
-      "aircraftId": _aircraft.id,
+      "aircraftId": _aircraft.sId,
     };
 
 

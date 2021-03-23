@@ -1,62 +1,78 @@
 
 import 'Activities.dart';
+import 'Aircraft.dart';
 import 'UserDetail.dart';
 
 class Reservation {
   bool approved;
-  String sId;
   bool deleted;
+  String sId;
   String start;
   String end;
-  Status status;
-  int iV;
+  Aircraft aircraft;
+  Instructor instructor;
   Pilot pilot;
   Activity activity;
+  Status status;
+  int iV;
 
   Reservation(
       {this.approved,
-        this.sId,
         this.deleted,
+        this.sId,
         this.start,
         this.end,
-        this.status,
-        this.iV,
+        this.aircraft,
+        this.instructor,
         this.pilot,
-        this.activity
-      });
+        this.activity,
+        this.status,
+        this.iV});
 
   Reservation.fromJson(Map<String, dynamic> json) {
     approved = json['approved'];
-    sId = json['_id'];
     deleted = json['deleted'];
+    sId = json['_id'];
     start = json['start'];
     end = json['end'];
-    status =
-    json['status'] != null ? new Status.fromJson(json['status']) : null;
-    iV = json['__v'];
+    aircraft = json['aircraft'] != null
+        ? new Aircraft.fromJson(json['aircraft'])
+        : null;
+    instructor = json['instructor'] != null
+        ? new Instructor.fromJson(json['instructor'])
+        : null;
     pilot = json['pilot'] != null ? new Pilot.fromJson(json['pilot']) : null;
     activity = json['activity'] != null
         ? new Activity.fromJson(json['activity'])
         : null;
+    status =
+    json['status'] != null ? new Status.fromJson(json['status']) : null;
+    iV = json['__v'];
   }
 
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> data = new Map<String, dynamic>();
     data['approved'] = this.approved;
-    data['_id'] = this.sId;
     data['deleted'] = this.deleted;
+    data['_id'] = this.sId;
     data['start'] = this.start;
     data['end'] = this.end;
-    if (this.status != null) {
-      data['status'] = this.status.toJson();
+    if (this.aircraft != null) {
+      data['aircraft'] = this.aircraft.toJson();
     }
-    data['__v'] = this.iV;
+    if (this.instructor != null) {
+      data['instructor'] = this.instructor.toJson();
+    }
     if (this.pilot != null) {
       data['pilot'] = this.pilot.toJson();
     }
     if (this.activity != null) {
       data['activity'] = this.activity.toJson();
     }
+    if (this.status != null) {
+      data['status'] = this.status.toJson();
+    }
+    data['__v'] = this.iV;
     return data;
   }
 }

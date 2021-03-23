@@ -1,4 +1,5 @@
 import 'package:aircraft/src/apis/login_user_api.dart';
+import 'package:aircraft/src/models/LoginUser.dart';
 import 'package:aircraft/src/sharedpreferences/shared_preferences_user.dart';
 import 'package:aircraft/src/views/profile_view.dart';
 import 'package:aircraft/src/views/register_view.dart';
@@ -244,15 +245,25 @@ class _LoginViewState extends State<LoginView> {
         await _loginUserApi.loginUser(email, password);
 
     if(statusLogin != null) {
-      final prefs = SharedPreferencesUser();
-      prefs.userLogged = true;
-      prefs.userId = statusLogin.user.id;
-      prefs.jwtToken = statusLogin.jwtToken;
-      prefs.refreshToken = statusLogin.refreshToken;
-      setState(() {
-        _isLoading = false;
-      });
-      Navigator.of(context).pushReplacementNamed(ProfileView.routeName);
+      if(statusLogin is LoginUser) {
+        final prefs = SharedPreferencesUser();
+        prefs.userLogged = true;
+        prefs.userId = statusLogin.user.id;
+        prefs.jwtToken = statusLogin.jwtToken;
+        prefs.refreshToken = statusLogin.refreshToken;
+        prefs.role = statusLogin.user.role;
+        setState(() {
+          _isLoading = false;
+        });
+        Navigator.of(context).pushReplacementNamed(ProfileView.routeName);
+      } else if(statusLogin is String) {
+        final String codeError = statusLogin;
+        setState(() {
+          _isLoading = false;
+        });
+        showMessage(context, "Error Login", codeError);
+      }
+
     } else {
       setState(() {
         _isLoading = false;

@@ -1,4 +1,3 @@
-
 class Country {
     String id;
     bool deleted;

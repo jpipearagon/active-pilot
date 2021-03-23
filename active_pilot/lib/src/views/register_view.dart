@@ -1,7 +1,9 @@
 import 'dart:convert';
 
 import 'package:aircraft/src/apis/register_user_api.dart';
+import 'package:aircraft/src/models/RegisterUser.dart';
 import 'package:aircraft/src/sharedpreferences/shared_preferences_user.dart';
+import 'package:aircraft/src/views/message_dialog_view.dart';
 import 'package:aircraft/src/views/profile_view.dart';
 import 'package:aircraft/src/widgets/message_widget.dart';
 import 'package:flutter/material.dart';
@@ -132,7 +134,7 @@ class _RegisterViewState extends State<RegisterView> {
                   SizedBox(height: size.height * 0.037,),
                   Center(
                     child: ButtonTheme(
-                      minWidth: 154.0,
+                      minWidth: 170.0,
                       height: 36.0,
                       child: RaisedButton(
                         shape: RoundedRectangleBorder(
@@ -141,14 +143,14 @@ class _RegisterViewState extends State<RegisterView> {
                         ),
                         color: Color.fromRGBO(223, 173, 78, 1),
                         child: Text(
-                          "Login",
+                          "Register",
                           style: TextStyle(
                               color: Colors.white,
-                              fontSize: 12,
+                              fontSize: 14,
                               fontFamily: "Open Sans",
                               fontWeight: FontWeight.w700),
                         ),
-                        onPressed: _registerUser,
+                        onPressed: () => _registerUser(context),
                       ),
                     ),
                   ),
@@ -247,10 +249,10 @@ class _RegisterViewState extends State<RegisterView> {
             prefixIconConstraints:BoxConstraints(minWidth: 23, maxHeight: 20),
             prefixIcon: Padding(
               padding: const EdgeInsets.only(right: 20),
-              child: Image(
-                width: 16,
-                height: 12,
-                image: AssetImage("assets/images/emailicon.png"),
+              child: SizedBox(
+                  width: 15,
+                  height: 20,
+                  child: Icon(Icons.email, color: Color.fromRGBO(223, 173, 78, 1))
               ),
             )
         ),
@@ -333,7 +335,11 @@ class _RegisterViewState extends State<RegisterView> {
             prefixIconConstraints:BoxConstraints(minWidth: 23, maxHeight: 20),
             prefixIcon: Padding(
               padding: const EdgeInsets.only(right: 20),
-              child: SizedBox(width: 17, height: 15,),
+              child: SizedBox(
+                  width: 15,
+                  height: 17,
+                  child: Icon(Icons.person, color: Color.fromRGBO(223, 173, 78, 1))
+              ),
             )
         ),
         onChanged: (text) {
@@ -441,7 +447,11 @@ class _RegisterViewState extends State<RegisterView> {
             prefixIconConstraints:BoxConstraints(minWidth: 23, maxHeight: 20),
             prefixIcon: Padding(
               padding: const EdgeInsets.only(right: 20),
-              child: SizedBox(width: 17, height: 15,),
+              child: SizedBox(
+                  width: 17,
+                  height: 20,
+                  child: Icon(Icons.remove_red_eye, color: Color.fromRGBO(223, 173, 78, 1))
+              ),
             )
         ),
       ),
@@ -502,14 +512,18 @@ class _RegisterViewState extends State<RegisterView> {
             prefixIconConstraints:BoxConstraints(minWidth: 23, maxHeight: 20),
             prefixIcon: Padding(
               padding: const EdgeInsets.only(right: 20),
-              child: SizedBox(width: 17, height: 15,),
+              child: SizedBox(
+                  width: 17,
+                  height: 20,
+                  child: Icon(Icons.phone, color: Color.fromRGBO(223, 173, 78, 1))
+              ),
             )
         ),
       ),
     );
   }
 
-  void _registerUser() async {
+  void _registerUser(BuildContext context) async {
     String email = _textEditingControllerEmail.text;
     String first = _textEditingControllerFirst.text;
     String last = _textEditingControllerLast.text;
@@ -537,12 +551,29 @@ class _RegisterViewState extends State<RegisterView> {
     await _registerUserApi.registerUser(first, last, pass, email, phone, "", "", "");
 
     if(statusLogin != null) {
-      final prefs = SharedPreferencesUser();
-      prefs.userLogged = true;
-      setState(() {
-        _isLoading = false;
-      });
-      Navigator.of(context).pushReplacementNamed(ProfileView.routeName);
+
+      if(statusLogin is RegisterUser) {
+        setState(() {
+          _isLoading = false;
+        });
+        showDialog(
+            context: context,
+            builder: (BuildContext context) {
+              return AlertDialog(
+                backgroundColor: Colors.transparent,
+                content: MessageView(
+                    title: "SUCCESS",
+                    message: "Your registration is complete, now you can log in with ${statusLogin.email}",
+                    onTap: () => successRegistered(context)),
+              );
+            });
+      } else if(statusLogin is String) {
+        final String codeError = statusLogin;
+        setState(() {
+          _isLoading = false;
+        });
+        showMessage(context, "Error Register", codeError);
+      }
     } else {
       setState(() {
         _isLoading = false;
@@ -550,6 +581,10 @@ class _RegisterViewState extends State<RegisterView> {
       showMessage(context, "Error Register", "User registration service error.");
     }
 
+  }
+
+  void successRegistered(BuildContext context) {
+    Navigator.pop(context);
   }
 
 }

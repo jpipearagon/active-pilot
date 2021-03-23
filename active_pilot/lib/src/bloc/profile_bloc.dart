@@ -25,6 +25,8 @@ class ProfileBloc {
     final prefs = SharedPreferencesUser();
     final userDetail = UserDetailApi();
     final response = await userDetail.userDetail(prefs.userId);
+    prefs.isPilot = response.pilot != null ? true : false ;
+    prefs.flyAlone = response.pilot.flyAlone;
     _profileController.sink.add(response);
     return null;
   }
