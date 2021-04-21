@@ -41,7 +41,6 @@ class RestApi {
     var responseJson;
     try {
       final url = Uri.https(_baseUrl, endPoint);
-      final body = Transformer.urlEncodeMap(queryParameters);
       final Map<String, String> headers = {
         HttpHeaders.userAgentHeader: "CFNetwork/1121.2.1 Darwin/19.3.0",
         HttpHeaders.contentTypeHeader: "application/x-www-form-urlencoded",
@@ -51,6 +50,32 @@ class RestApi {
         headers[HttpHeaders.authorizationHeader] = "bearer " + prefs.jwtToken;
       }
       final response = await http.post(url, headers: headers,
+          body: queryParameters).timeout(const Duration(seconds: 60));
+      responseJson = _response(response);
+    } on TimeoutException  {
+      throw FetchDataException('Timeout connection');
+    } on SocketException {
+      throw FetchDataException('No Internet connection');
+    } on UnauthorisedException {
+      await refreshToken();
+      responseJson = await post(endPoint: endPoint, queryParameters: queryParameters);
+    }
+    return responseJson;
+  }
+
+  Future<dynamic> patch({ @required String endPoint, Map<String, dynamic> queryParameters}) async {
+    var responseJson;
+    try {
+      final url = Uri.https(_baseUrl, endPoint);
+      final Map<String, String> headers = {
+        HttpHeaders.userAgentHeader: "CFNetwork/1121.2.1 Darwin/19.3.0",
+        HttpHeaders.contentTypeHeader: "application/x-www-form-urlencoded",
+      };
+      final prefs = SharedPreferencesUser();
+      if(prefs.jwtToken.isNotEmpty) {
+        headers[HttpHeaders.authorizationHeader] = "bearer " + prefs.jwtToken;
+      }
+      final response = await http.patch(url, headers: headers,
           body: queryParameters).timeout(const Duration(seconds: 60));
       responseJson = _response(response);
     } on TimeoutException  {

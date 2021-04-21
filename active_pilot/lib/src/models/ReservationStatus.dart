@@ -1,0 +1,1 @@
+enum ReservationStatus { pending, canceled, rejected, flying, approved, finish }

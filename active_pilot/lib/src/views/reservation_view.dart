@@ -548,14 +548,16 @@ class _ReservationViewState extends State<ReservationView> {
     }
   }
 
-
-  void _showData(Types type) async {
-
+  void _showLoading() {
     setState(() {
       _isLoading = true;
     });
+  }
+
+  void _showData(Types type) async {
 
     if(type == Types.location) {
+      _showLoading();
       final locationApi = LocationsApi();
       final locations = await locationApi.getLocations();
       setState(() {
@@ -573,6 +575,7 @@ class _ReservationViewState extends State<ReservationView> {
     }
 
     if(type == Types.activity) {
+      _showLoading();
       final activitiesApi = ActivitiesApi();
       final activities = await activitiesApi.getActivities();
       setState(() {
@@ -590,42 +593,48 @@ class _ReservationViewState extends State<ReservationView> {
     }
 
     if(type == Types.instructor) {
-      final instructorsApi = InstructorApi();
-      final instructors = await instructorsApi.getAvailableInstructor(_chosenDateTimeStart.toIso8601String(), _chosenDateTimeEnd.toIso8601String(), _locationUser.id);
-      setState(() {
-        _isLoading = false;
-      });
-      if(instructors != null) {
-        showDialog(
-            context: context,
-            builder: (BuildContext context) {
-              return AlertDialog(
-                content: SelectDataView(type: type,
-                  data: instructors,
-                  onTap: (type, data) => _selectData(type, data),),
-              );
-            });
+      if (_locationUser != null) {
+        _showLoading();
+        final instructorsApi = InstructorApi();
+        final instructors = await instructorsApi.getAvailableInstructor(_chosenDateTimeStart.toIso8601String(), _chosenDateTimeEnd.toIso8601String(), _locationUser.id);
+        setState(() {
+          _isLoading = false;
+        });
+        if(instructors != null) {
+          showDialog(
+              context: context,
+              builder: (BuildContext context) {
+                return AlertDialog(
+                  content: SelectDataView(type: type,
+                    data: instructors,
+                    onTap: (type, data) => _selectData(type, data),),
+                );
+              });
+        }
       }
     }
 
     if(type == Types.aircraft) {
 
-      final aircraftApi = AircraftApi();
-      final aircrafts = await aircraftApi.getAvailableAircrafts(_chosenDateTimeStart.toIso8601String(), _chosenDateTimeEnd.toIso8601String(), _locationUser.id, _activity.id, _userDetail.pilot.aircraftCategory);
-      setState(() {
-        _isLoading = false;
-      });
-      if(aircrafts != null) {
-        showDialog(
-            context: context,
-            builder: (BuildContext context) {
-              return AlertDialog(
-                backgroundColor: Colors.transparent,
-                content: SelectDataView(type: type,
-                  data: aircrafts,
-                  onTap: (type, data) => _selectData(type, data),),
-              );
-            });
+      if (_locationUser != null && _activity != null && _userDetail != null) {
+        _showLoading();
+        final aircraftApi = AircraftApi();
+        final aircrafts = await aircraftApi.getAvailableAircrafts(_chosenDateTimeStart.toIso8601String(), _chosenDateTimeEnd.toIso8601String(), _locationUser.id, _activity.id, _userDetail.pilot.aircraftCategory);
+        setState(() {
+          _isLoading = false;
+        });
+        if(aircrafts != null) {
+          showDialog(
+              context: context,
+              builder: (BuildContext context) {
+                return AlertDialog(
+                  backgroundColor: Colors.transparent,
+                  content: SelectDataView(type: type,
+                    data: aircrafts,
+                    onTap: (type, data) => _selectData(type, data),),
+                );
+              });
+        }
       }
     }
 

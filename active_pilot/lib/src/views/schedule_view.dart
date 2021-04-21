@@ -1,15 +1,20 @@
 import 'package:aircraft/src/Constants/application_colors.dart';
 import 'package:aircraft/src/bloc/schedule_bloc.dart';
 import 'package:aircraft/src/models/Reservation.dart';
+import 'package:aircraft/src/models/ReservationStatus.dart';
 import 'package:aircraft/src/models/UserRole.dart';
 import 'package:aircraft/src/sharedpreferences/shared_preferences_user.dart';
 import 'package:aircraft/src/views/header_view.dart';
 import 'package:aircraft/src/views/reservation_view.dart';
+import 'package:aircraft/src/widgets/message_widget.dart';
 import 'package:aircraft/utils/colors_util.dart';
 import 'package:aircraft/utils/date_util.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:table_calendar/table_calendar.dart';
+
+import 'detail_reservation_view.dart';
+import 'noke_view.dart';
 
 class ScheduleView extends StatefulWidget {
   static final routeName = "schedule";
@@ -114,7 +119,7 @@ class _ScheduleViewState extends State<ScheduleView> {
                                     itemBuilder: (context, index) {
                                       Reservation reservation =
                                           snapshot.data[index];
-                                      return buildEvent(reservation);
+                                      return buildEvent(context, reservation);
                                     },
                                   )
                                 : Container();
@@ -130,14 +135,14 @@ class _ScheduleViewState extends State<ScheduleView> {
         ],
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () => gotoReservation(context),
+        onPressed: () => createReservation(context),
         child: Icon(Icons.add),
         backgroundColor: Color.fromRGBO(223, 173, 78, 1),
       ),
     );
   }
 
-  Widget buildEvent(Reservation reservation) {
+  Widget buildEvent(BuildContext context, Reservation reservation) {
 
     final prefs = SharedPreferencesUser();
     var title = "";
@@ -151,19 +156,19 @@ class _ScheduleViewState extends State<ScheduleView> {
 
       case Role.pilot:
         if (prefs.isPilot) {
-          title = prefs.flyAlone ? reservation.instructor.scheduleName : reservation.aircraft.name;
-          subtitle = reservation.activity.name;
+          title = prefs.flyAlone ? "${reservation.instructor.scheduleName}" : "${reservation.aircraft.name}";
+          subtitle = "${reservation.activity.name}";
         }
         break;
 
       case Role.student:
       case Role.registered:
-        title = reservation.instructor.scheduleName;
-        subtitle = reservation.activity.name;
+        title = "${reservation.instructor.scheduleName}";
+        subtitle = "${reservation.activity.name}";
         break;
     }
 
-    return GestureDetector(
+    return InkWell(
       child: Container(
         child: Column(
           children: [
@@ -288,25 +293,37 @@ class _ScheduleViewState extends State<ScheduleView> {
           ],
         ),
       ),
-      onTap: () => goToReservation(),
+      onTap: () => goToReservation(context, reservation),
     );
   }
 
-  void goToReservation() {
+  void goToReservation(BuildContext context, Reservation reservation) {
+    final ReservationStatus reservationStatus = enumFromString(ReservationStatus.values, reservation.status.name.toLowerCase());
+
     final prefs = SharedPreferencesUser();
     final Role role = enumFromString(Role.values, prefs.role);
     switch (role) {
       case Role.instructor:
+        if (reservationStatus == ReservationStatus.pending) {
+          _gotoDetailReservation(context, reservation);
+        } else if (reservationStatus == ReservationStatus.approved) {
+          _gotoNoke();
+        } else if (reservationStatus == ReservationStatus.flying) {
 
+        }
         break;
 
       case Role.pilot:
-
+        if (reservationStatus == ReservationStatus.pending || reservationStatus == ReservationStatus.approved) {
+          _gotoDetailReservation(context, reservation);
+        }
         break;
 
       case Role.student:
       case Role.registered:
-
+        if (reservationStatus == ReservationStatus.pending || reservationStatus == ReservationStatus.approved) {
+          _gotoDetailReservation(context, reservation);
+        }
         break;
     }
   }
@@ -315,7 +332,23 @@ class _ScheduleViewState extends State<ScheduleView> {
     _scheduleBloc.loadSchedule(day);
   }
   
-  void gotoReservation(BuildContext context) async {
+  void createReservation(BuildContext context) {
+    final prefs = SharedPreferencesUser();
+    final Role role = enumFromString(Role.values, prefs.role);
+    switch (role) {
+      case Role.instructor:
+      case Role.pilot:
+      case Role.student:
+        gotoReservationView();
+        break;
+
+      case Role.registered:
+        showMessage(context, "Error create reservation", "You do not have permission to create a reservation, contact the administrator.") ;
+        break;
+    }
+  }
+
+  void gotoReservationView() async {
     final DateTime date = await Navigator.push(
       context,
       MaterialPageRoute(
@@ -330,5 +363,12 @@ class _ScheduleViewState extends State<ScheduleView> {
       });
     }
   }
-  
+
+  void _gotoDetailReservation(BuildContext context, Reservation reservation) async {
+    final result = await Navigator.of(context).pushNamed(DetailReservationView.routeName, arguments: {"reservation": reservation});
+  }
+
+  void _gotoNoke() {
+    Navigator.of(context).pushNamed(NokeView.routeName);
+  }
 }

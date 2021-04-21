@@ -5,3 +5,5 @@ T enumFromString<T>(List<T> values, String value) {
         orElse: () => null);
 }
 
+String enumValueToString(Object o) => o.toString().split('.').last;
+

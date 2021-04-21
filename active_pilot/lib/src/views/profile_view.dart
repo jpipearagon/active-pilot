@@ -1,5 +1,6 @@
 import 'package:aircraft/src/bloc/profile_bloc.dart';
 import 'package:aircraft/src/models/UserDetail.dart';
+import 'package:aircraft/src/sharedpreferences/shared_preferences_user.dart';
 import 'package:aircraft/src/views/logbook_view.dart';
 import 'package:aircraft/src/views/menu_view.dart';
 import 'package:flutter/material.dart';
@@ -136,6 +137,8 @@ class _ProfileViewState extends State<ProfileView> {
   }
 
   List<Widget> _profileView(UserDetail userDetail) {
+    final prefs = SharedPreferencesUser();
+    prefs.role = userDetail.role;
     final size = MediaQuery.of(context).size;
 
     final listWidget = [
