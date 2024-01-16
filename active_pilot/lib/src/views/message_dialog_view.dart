@@ -6,7 +6,7 @@ class MessageView extends StatelessWidget {
   final Function onTap;
   final String title;
   final String message;
-  MessageView({Key key, @required this.title, @required this.message, @required this.onTap}) : super(key: key);
+  MessageView({Key? key, required this.title, required this.message, required this.onTap}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -50,12 +50,14 @@ class MessageView extends StatelessWidget {
             child: ButtonTheme(
               minWidth: 154.0,
               height: 45.0,
-              child: RaisedButton(
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(18.0),
-                    side: BorderSide(color: Colors.transparent)
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Color.fromRGBO(223, 173, 78, 1),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(18.0),
+                      side: BorderSide(color: Colors.transparent)
+                  ),
                 ),
-                color: Color.fromRGBO(223, 173, 78, 1),
                 child: Text(
                   "OK",
                   style: TextStyle(

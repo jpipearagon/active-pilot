@@ -43,8 +43,8 @@ class _DetailReservationViewState extends State<DetailReservationView> {
   Widget _app(BuildContext context) {
 
     final size = MediaQuery.of(context).size;
-    final Map arguments = ModalRoute.of(context).settings.arguments;
-    final Reservation reservation = arguments["reservation"];
+    final Map? arguments = ModalRoute.of(context)?.settings.arguments as Map?;
+    final Reservation reservation = arguments?["reservation"];
     DateTime startDate = DateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'").parse("${reservation.start}");
     DateTime endDate = DateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'").parse("${reservation.end}");
 
@@ -89,7 +89,7 @@ class _DetailReservationViewState extends State<DetailReservationView> {
                           ),
                           Expanded(
                             child: Text(
-                              "${reservation.status.name}",
+                              "${reservation.status?.name}",
                               style: TextStyle(
                                   color: Color.fromRGBO(106, 107, 108, 1),
                                   fontSize: 14,
@@ -164,7 +164,7 @@ class _DetailReservationViewState extends State<DetailReservationView> {
                           ),
                           Expanded(
                             child: Text(
-                              "${reservation.pilot.firstName} ${reservation.pilot.lastName}",
+                              "${reservation.userPilot?.firstName} ${reservation.userPilot?.lastName}",
                               style: TextStyle(
                                   color: Color.fromRGBO(106, 107, 108, 1),
                                   fontSize: 14,
@@ -189,7 +189,7 @@ class _DetailReservationViewState extends State<DetailReservationView> {
                           ),
                           Expanded(
                             child: Text(
-                              "${reservation.aircraft.name}",
+                              "${reservation.aircraft?.name}",
                               style: TextStyle(
                                   color: Color.fromRGBO(106, 107, 108, 1),
                                   fontSize: 14,
@@ -211,18 +211,19 @@ class _DetailReservationViewState extends State<DetailReservationView> {
   }
 
   Widget _createButtons(Reservation reservation) {
-    bool showFirstButton;
-    bool showSecondButton;
+    bool showFirstButton = false;
+    bool showSecondButton = false;
     String textFirstButton = "";
     String textSecondButton = "";
-    ReservationStatus statusFirstButton;
-    ReservationStatus statusSecondButton;
-
-    final ReservationStatus reservationStatus = enumFromString(ReservationStatus.values, reservation.status.name.toLowerCase());
+    ReservationStatus statusFirstButton = ReservationStatus.canceled;
+    ReservationStatus statusSecondButton = ReservationStatus.canceled;
+    String name = reservation.status?.name ?? "";
+    final ReservationStatus reservationStatus = enumFromString(ReservationStatus.values, name.toLowerCase());
 
     final prefs = SharedPreferencesUser();
     final Role role = enumFromString(Role.values, prefs.role);
     switch (role) {
+      case Role.admin:
       case Role.instructor:
         if (reservationStatus == ReservationStatus.pending) {
           showFirstButton = true;
@@ -230,7 +231,7 @@ class _DetailReservationViewState extends State<DetailReservationView> {
           textFirstButton = "Accept";
           textSecondButton = "Rejected";
           statusFirstButton = ReservationStatus.approved;
-          statusFirstButton = ReservationStatus.rejected;
+          statusSecondButton = ReservationStatus.rejected;
         }
         break;
 
@@ -238,7 +239,7 @@ class _DetailReservationViewState extends State<DetailReservationView> {
         if (reservationStatus == ReservationStatus.pending || reservationStatus == ReservationStatus.approved) {
           showFirstButton = true;
           showSecondButton = false;
-          textFirstButton = "Cancelled";
+          textFirstButton = "Cancel";
           statusFirstButton = ReservationStatus.canceled;
         }
         break;
@@ -248,7 +249,7 @@ class _DetailReservationViewState extends State<DetailReservationView> {
         if (reservationStatus == ReservationStatus.pending || reservationStatus == ReservationStatus.approved) {
           showFirstButton = true;
           showSecondButton = false;
-          textFirstButton = "Cancelled";
+          textFirstButton = "Cancel";
           statusFirstButton = ReservationStatus.canceled;
         }
         break;
@@ -266,12 +267,14 @@ class _DetailReservationViewState extends State<DetailReservationView> {
             child: ButtonTheme(
               minWidth: double.infinity,
               height: 45.0,
-              child: RaisedButton(
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(18.0),
-                    side: BorderSide(color: Colors.transparent)
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Color.fromRGBO(223, 173, 78, 1),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(18.0),
+                      side: BorderSide(color: Colors.transparent)
+                  ),
                 ),
-                color: Color.fromRGBO(223, 173, 78, 1),
                 child: Text(
                   textFirstButton,
                   style: TextStyle(
@@ -280,7 +283,7 @@ class _DetailReservationViewState extends State<DetailReservationView> {
                       fontFamily: "Open Sans",
                       fontWeight: FontWeight.w700),
                 ),
-                onPressed: () => _changeStatus(reservation.sId, statusFirstButton),
+                onPressed: () => _changeStatus(reservation.sId ?? "", statusFirstButton),
               ),
             ),
             visible: showFirstButton,
@@ -290,12 +293,14 @@ class _DetailReservationViewState extends State<DetailReservationView> {
             child: ButtonTheme(
               minWidth: double.infinity,
               height: 45.0,
-              child: RaisedButton(
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(18.0),
-                    side: BorderSide(color: Colors.transparent)
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Color.fromRGBO(223, 173, 78, 1),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(18.0),
+                      side: BorderSide(color: Colors.transparent)
+                  ),
                 ),
-                color: Color.fromRGBO(223, 173, 78, 1),
                 child: Text(
                   textSecondButton,
                   style: TextStyle(
@@ -304,7 +309,7 @@ class _DetailReservationViewState extends State<DetailReservationView> {
                       fontFamily: "Open Sans",
                       fontWeight: FontWeight.w700),
                 ),
-                onPressed: () => _changeStatus(reservation.sId, statusSecondButton),
+                onPressed: () => _changeStatus(reservation.sId ?? "", statusSecondButton),
               ),
             ),
             visible: showSecondButton,

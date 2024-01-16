@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:aircraft/src/apis/reservation_api.dart';
 import 'package:aircraft/src/constants/application_colors.dart';
 import 'package:aircraft/src/models/CodeError.dart';
@@ -5,6 +7,7 @@ import 'package:aircraft/src/models/Reservation.dart';
 import 'package:aircraft/src/sharedpreferences/shared_preferences_user.dart';
 import 'package:aircraft/src/views/header_view.dart';
 import 'package:aircraft/src/views/schedule_view.dart';
+import 'package:aircraft/src/views/web_view.dart';
 import 'package:aircraft/src/widgets/message_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:loading_overlay/loading_overlay.dart';
@@ -14,7 +17,7 @@ class ConfirmationView extends StatefulWidget {
 
   static final routeName = "confirmation";
 
-  final Map reservationData;
+  final Map? reservationData;
 
   ConfirmationView({this.reservationData});
 
@@ -26,23 +29,24 @@ class _ConfirmationViewState extends State<ConfirmationView> {
 
   bool _checkOne = false;
   bool _checkTwo = false;
-  DateTime _startDate;
-  DateTime _endDate;
-  String _activityId;
-  String _instructorId;
-  String _aircraftId;
-  bool _isLoading = false;
+  DateTime? _startDate;
+  DateTime? _endDate;
+  String? _activityId;
+  String? _instructorId;
+  String? _aircraftId;
+  String? _locationId;
+  bool? _isLoading = false;
 
   @override
   void initState() {
     super.initState();
     final arguments = widget.reservationData;
-    _startDate = arguments["startDate"];
-    _endDate = arguments["endDate"];
-    _activityId = arguments["activityId"];
-    _instructorId = arguments["instructorId"];
-    _aircraftId = arguments["aircraftId"];
-
+    _startDate = arguments?["startDate"];
+    _endDate = arguments?["endDate"];
+    _activityId = arguments?["activityId"];
+    _instructorId = arguments?["instructorId"];
+    _aircraftId = arguments?["aircraftId"];
+    _locationId = arguments?["locationId"];
   }
 
   @override
@@ -55,14 +59,12 @@ class _ConfirmationViewState extends State<ConfirmationView> {
             width: 100,
             height: 100
         ),
-        isLoading: _isLoading,
+        isLoading: _isLoading ?? false,
         child: _app(context)
     );
   }
 
   Widget _app(BuildContext context) {
-
-
 
     final size = MediaQuery.of(context).size;
 
@@ -130,9 +132,13 @@ class _ConfirmationViewState extends State<ConfirmationView> {
                             value: _checkOne,
                             activeColor: Color.fromRGBO(4,41,68,1),
                             checkColor: Color.fromRGBO(223,173,78,1),
+                            secondary: InkWell(
+                                child: Icon(Icons.link, color: Colors.black,),
+                              onTap: () => openFileCompany(),
+                            ),
                             onChanged: (value) {
                               setState(() {
-                                _checkOne = value;
+                                _checkOne = value ?? false;
                               });
                             },
                           ),
@@ -151,9 +157,13 @@ class _ConfirmationViewState extends State<ConfirmationView> {
                             value: _checkTwo,
                             activeColor: Color.fromRGBO(4,41,68,1),
                             checkColor: Color.fromRGBO(223,173,78,1),
+                            secondary: InkWell(
+                              child: Icon(Icons.link, color: Colors.black,),
+                              onTap: () => openFileFAA(),
+                            ),
                             onChanged: (value) {
                               setState(() {
-                                _checkTwo = value;
+                                _checkTwo = value ?? false;
                               });
                             },
                           ),
@@ -165,12 +175,14 @@ class _ConfirmationViewState extends State<ConfirmationView> {
                           child: ButtonTheme(
                             minWidth: size.width * 0.48,
                             height: size.height * 0.064,
-                            child: RaisedButton(
-                              shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(22.5),
-                                  side: BorderSide(color: Colors.transparent)
+                            child: ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: (_checkOne && _checkTwo) ? Color.fromRGBO(223, 173, 78, 1) : Color.fromRGBO(106,107,108,0.4),
+                                shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(22.5),
+                                    side: BorderSide(color: Colors.transparent)
+                                ),
                               ),
-                              color: (_checkOne && _checkTwo) ? Color.fromRGBO(223, 173, 78, 1) : Color.fromRGBO(106,107,108,0.4),
                               child: Text(
                                 "Accept",
                                 style: TextStyle(
@@ -200,8 +212,10 @@ class _ConfirmationViewState extends State<ConfirmationView> {
     });
     final prefs = SharedPreferencesUser();
     final _reservationApi = ReservationApi();
+    DateTime dateStart = _startDate?.toUtc() ?? DateTime.now();
+    DateTime dateEnd = _endDate?.toUtc() ?? DateTime.now();
     final reservation =
-    await _reservationApi.createReservation(_startDate.toIso8601String(), _endDate.toIso8601String(), _activityId, _aircraftId, _instructorId, prefs.userId);
+    await _reservationApi.createReservation(dateStart.toIso8601String(), dateEnd.toIso8601String(), _activityId ?? "", _aircraftId ?? "", _instructorId ?? "", prefs.userId, _locationId ?? "");
 
     if(reservation != null) {
 
@@ -222,6 +236,22 @@ class _ConfirmationViewState extends State<ConfirmationView> {
         _isLoading = false;
         showMessage(context, "Error create reservation", "an error occurred in the creation of the reservation ");
       });
+    }
+  }
+
+  void openFileCompany() {
+    if (Platform.isIOS) {
+      Navigator.of(context).pushNamed(OpenWebView.routeName, arguments: {"url": "https://s3.amazonaws.com/assets.activepilot/public/companyPolicyAcknowledgement.pdf"});
+    } else {
+      Navigator.of(context).pushNamed(OpenWebView.routeName, arguments: {"url": "https://docs.google.com/gview?embedded=true&url=https://s3.amazonaws.com/assets.activepilot/public/companyPolicyAcknowledgement.pdf"});
+    }
+  }
+
+  void openFileFAA() {
+    if (Platform.isIOS) {
+      Navigator.of(context).pushNamed(OpenWebView.routeName, arguments: {"url": "https://s3.amazonaws.com/assets.activepilot/public/FFA91103Acknowledgement.pdf"});
+    } else {
+      Navigator.of(context).pushNamed(OpenWebView.routeName, arguments: {"url": "https://docs.google.com/gview?embedded=true&url=https://s3.amazonaws.com/assets.activepilot/public/FFA91103Acknowledgement.pdf"});
     }
   }
 

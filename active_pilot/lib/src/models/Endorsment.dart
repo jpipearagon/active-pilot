@@ -1,9 +1,9 @@
 class Endorsment {
-  final String id;
-  final String expirationDate;
-  final String issuedDate;
-  final String description;
-  final String title;
+  final String? id;
+  final String? expirationDate;
+  final String? issuedDate;
+  final String? description;
+  final String? title;
 
   Endorsment({
     this.id,

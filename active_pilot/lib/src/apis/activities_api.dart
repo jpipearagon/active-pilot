@@ -6,7 +6,7 @@ class ActivitiesApi {
 
   final RestApi _restApi = RestApi();
 
-  Future<List<Activity>> getActivities() async {
+  Future<List<Activity>?> getActivities() async {
     try {
       List<dynamic> response = await _restApi.get(endPoint: "/api/activityTypes");
       final list = response.map((data) {

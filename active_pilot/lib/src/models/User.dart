@@ -1,8 +1,8 @@
 
 class User {
-    String id;
-    String email;
-    String role;
+    String? id;
+    String? email;
+    String? role;
 
     User({this.id, this.email, this.role});
 

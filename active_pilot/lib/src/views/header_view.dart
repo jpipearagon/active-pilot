@@ -6,7 +6,7 @@ class HeaderView extends StatelessWidget {
 
   final String title;
   final String subtitle;
-  HeaderView({Key key, @required this.title, @required this.subtitle}) : super(key: key);
+  HeaderView({Key? key, required this.title, required this.subtitle}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {

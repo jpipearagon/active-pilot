@@ -1,5 +1,9 @@
+import 'dart:io';
+
 import 'package:aircraft/src/Constants/application_colors.dart';
+import 'package:aircraft/src/apis/payment_api.dart';
 import 'package:aircraft/src/bloc/schedule_bloc.dart';
+import 'package:aircraft/src/models/Pay.dart';
 import 'package:aircraft/src/models/Reservation.dart';
 import 'package:aircraft/src/models/ReservationStatus.dart';
 import 'package:aircraft/src/models/UserRole.dart';
@@ -11,10 +15,16 @@ import 'package:aircraft/utils/colors_util.dart';
 import 'package:aircraft/utils/date_util.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:loading_overlay/loading_overlay.dart';
+import 'package:lottie/lottie.dart';
 import 'package:table_calendar/table_calendar.dart';
 
+import 'check_flight_view.dart';
 import 'detail_reservation_view.dart';
+import 'ground_instruction_view.dart';
+import 'logbook_edit_view.dart';
 import 'noke_view.dart';
+import 'web_view.dart';
 
 class ScheduleView extends StatefulWidget {
   static final routeName = "schedule";
@@ -24,23 +34,34 @@ class ScheduleView extends StatefulWidget {
 }
 
 class _ScheduleViewState extends State<ScheduleView> {
-  final _calendarController = CalendarController();
   final _scheduleBloc = ScheduleBloc();
-  var _selectDay = DateTime.now();
+  DateTime _focusedDay = DateTime.now();
+  DateTime _selectedDay = DateTime.now();
+  bool _isLoading = false;
 
   @override
   void initState() {
     super.initState();
-    _scheduleBloc.loadSchedule(_selectDay);
+    _scheduleBloc.loadSchedule(_selectedDay);
   }
 
   @override
   Widget build(BuildContext context) {
+    return LoadingOverlay(
+        color: Colors.white,
+        opacity: 1.0,
+        progressIndicator: Lottie.asset('assets/gifs/35718-loader.json',
+            width: 100, height: 100),
+        isLoading: _isLoading,
+        child: _app(context));
+  }
+
+  Widget _app(BuildContext context) {
     return Scaffold(
       backgroundColor: ApplicationColors().primaryColor,
       body: Column(
         children: [
-          HeaderView(title: "Schedule", subtitle: "Choose a date for start"),
+          HeaderView(title: "Schedule", subtitle: "Choose a date to start\nNEW RESERVATION then +"),
           Expanded(
             child: Container(
               padding: EdgeInsets.only(
@@ -56,7 +77,9 @@ class _ScheduleViewState extends State<ScheduleView> {
                 child: Column(
                   children: [
                     TableCalendar(
-                      initialSelectedDay: _selectDay,
+                      focusedDay: _focusedDay,
+                      firstDay: DateTime.utc(2000, 01, 01),
+                      lastDay: DateTime.utc(2100, 01, 01),
                       locale: 'en_US',
                       headerStyle: HeaderStyle(
                           formatButtonVisible: false,
@@ -65,30 +88,34 @@ class _ScheduleViewState extends State<ScheduleView> {
                               fontSize: 15,
                               fontFamily: "Montserrat",
                               fontWeight: FontWeight.w700)),
+                      selectedDayPredicate: (day) {
+                        return isSameDay(_selectedDay, day);
+                      },
                       calendarStyle: CalendarStyle(
-                        selectedColor: Color.fromRGBO(255, 204, 0, 0.13),
-                        selectedStyle: TextStyle(
+                        selectedDecoration: const BoxDecoration(
+                          color: const Color.fromRGBO(255, 204, 0, 0.13),
+                          shape: BoxShape.circle,
+                        ),
+                        selectedTextStyle: TextStyle(
                             color: Color.fromRGBO(32, 25, 25, 1),
                             fontSize: 14,
                             fontFamily: "Montserrat",
                             fontWeight: FontWeight.w600),
-                        todayColor: Colors.grey,
-                        todayStyle: TextStyle(
+                        todayDecoration: const BoxDecoration(
+                          color: Colors.grey,
+                          shape: BoxShape.circle,
+                        ),
+                        todayTextStyle: TextStyle(
                             color: Color.fromRGBO(32, 25, 25, 1),
                             fontSize: 14,
                             fontFamily: "Montserrat",
                             fontWeight: FontWeight.w600),
-                        weekendStyle: TextStyle(
+                        weekendTextStyle: TextStyle(
                             color: Color.fromRGBO(32, 25, 25, 1),
                             fontSize: 14,
                             fontFamily: "Montserrat",
                             fontWeight: FontWeight.w600),
-                        weekdayStyle: TextStyle(
-                            color: Color.fromRGBO(32, 25, 25, 1),
-                            fontSize: 14,
-                            fontFamily: "Montserrat",
-                            fontWeight: FontWeight.w600),
-                        outsideWeekendStyle:
+                        outsideTextStyle:
                             TextStyle(color: const Color(0xFF9E9E9E)),
                       ),
                       daysOfWeekStyle: DaysOfWeekStyle(
@@ -103,7 +130,6 @@ class _ScheduleViewState extends State<ScheduleView> {
                             fontFamily: "Montserrat",
                             fontWeight: FontWeight.w500),
                       ),
-                      calendarController: _calendarController,
                       onDaySelected: _onDaySelected,
                     ),
                     Expanded(
@@ -115,11 +141,14 @@ class _ScheduleViewState extends State<ScheduleView> {
                           builder: (context, snapshot) {
                             return snapshot.hasData
                                 ? ListView.builder(
-                                    itemCount: snapshot.data.length,
+                                    padding: EdgeInsets.zero,
+                                    itemCount: snapshot.data?.length,
                                     itemBuilder: (context, index) {
-                                      Reservation reservation =
-                                          snapshot.data[index];
-                                      return buildEvent(context, reservation);
+                                      Reservation? reservation =
+                                          snapshot.data?[index];
+                                      if(reservation != null){
+                                        return buildEvent(context, reservation);
+                                      }
                                     },
                                   )
                                 : Container();
@@ -149,22 +178,23 @@ class _ScheduleViewState extends State<ScheduleView> {
     var subtitle = "";
     final Role role = enumFromString(Role.values, prefs.role);
     switch (role) {
+      case Role.admin:
       case Role.instructor:
-        title = "${reservation.pilot.firstName} ${reservation.pilot.lastName}";
-        subtitle = "${reservation.activity.name}";
+        title = "${reservation.userPilot?.firstName} ${reservation.userPilot?.lastName}";
+        subtitle = "${reservation.activity?.name}";
         break;
 
       case Role.pilot:
         if (prefs.isPilot) {
-          title = prefs.flyAlone ? "${reservation.instructor.scheduleName}" : "${reservation.aircraft.name}";
-          subtitle = "${reservation.activity.name}";
+          title = prefs.flyAlone ? "${reservation.aircraft?.name}" : "${reservation.userInstructor?.instructor?.scheduleName}";
+          subtitle = "${reservation.activity?.name}";
         }
         break;
 
       case Role.student:
       case Role.registered:
-        title = "${reservation.instructor.scheduleName}";
-        subtitle = "${reservation.activity.name}";
+        title = "${reservation.userInstructor?.instructor?.scheduleName}";
+        subtitle = "${reservation.activity?.name}";
         break;
     }
 
@@ -183,24 +213,40 @@ class _ScheduleViewState extends State<ScheduleView> {
                   Column(
                     children: [
                       Text(
-                        DateUtil.getDateFormattedFromString(reservation.start,
-                            DateUtil.yyyyMmddTHHmmssz, DateUtil.HHmm),
+                        DateUtil.getDateFormattedFromString(reservation.start ?? "", DateUtil.MMMddyyyy),
+                        style: GoogleFonts.montserrat(
+                          //fontFamily: "Montserrat",
+                            fontSize: 10.0,
+                            fontWeight: FontWeight.w600,
+                            color: Color.fromRGBO(165, 164, 164, 1) // semi-bold
+                        ),
+                      ),
+                      Text(
+                        DateUtil.getDateFormattedFromString(reservation.start ?? "", DateUtil.HHmma),
                         style: GoogleFonts.montserrat(
                             //fontFamily: "Montserrat",
-                            fontSize: 12.0,
+                            fontSize: 10.0,
                             fontWeight: FontWeight.w600,
                             color: Color.fromRGBO(165, 164, 164, 1) // semi-bold
                             ),
                       ),
                       SizedBox(
-                        height: 5,
+                        height: 10,
                       ),
                       Text(
-                        DateUtil.getDateFormattedFromString(reservation.end,
-                            DateUtil.yyyyMmddTHHmmssz, DateUtil.HHmm),
+                        DateUtil.getDateFormattedFromString(reservation.end ?? "", DateUtil.MMMddyyyy),
+                        style: GoogleFonts.montserrat(
+                          //fontFamily: "Montserrat",
+                            fontSize: 10.0,
+                            fontWeight: FontWeight.w600,
+                            color: Color.fromRGBO(165, 164, 164, 1) // semi-bold
+                        ),
+                      ),
+                      Text(
+                        DateUtil.getDateFormattedFromString(reservation.end ?? "", DateUtil.HHmma),
                         style: GoogleFonts.montserrat(
                             //fontFamily: "Montserrat",
-                            fontSize: 12.0,
+                            fontSize: 10.0,
                             fontWeight: FontWeight.w600,
                             color: Color.fromRGBO(165, 164, 164, 1) // semi-bold
                             ),
@@ -253,7 +299,7 @@ class _ScheduleViewState extends State<ScheduleView> {
                         child: Container(
                           decoration: BoxDecoration(
                               color: ColorsUtils.getColorFromHex(
-                                  reservation.status.color),
+                                  reservation.status?.color ?? ""),
                               border: Border.all(
                                 color: Colors.transparent,
                               ),
@@ -267,7 +313,7 @@ class _ScheduleViewState extends State<ScheduleView> {
                               1.0,
                             ),
                             child: Text(
-                              reservation.status.name,
+                              reservation.status?.name ?? "",
                               style: GoogleFonts.openSans(
                                   fontSize: 12,
                                   fontWeight: FontWeight.w400,
@@ -298,24 +344,25 @@ class _ScheduleViewState extends State<ScheduleView> {
   }
 
   void goToReservation(BuildContext context, Reservation reservation) {
-    final ReservationStatus reservationStatus = enumFromString(ReservationStatus.values, reservation.status.name.toLowerCase());
+    String sId = reservation.status?.sId ?? "";
+    final ReservationStatus reservationStatus = enumFromString(ReservationStatus.values, sId.toLowerCase());
 
     final prefs = SharedPreferencesUser();
     final Role role = enumFromString(Role.values, prefs.role);
     switch (role) {
-      case Role.instructor:
-        if (reservationStatus == ReservationStatus.pending) {
-          _gotoDetailReservation(context, reservation);
-        } else if (reservationStatus == ReservationStatus.approved) {
-          _gotoNoke();
-        } else if (reservationStatus == ReservationStatus.flying) {
+      case Role.admin:
+        _checkGoToReservationAdminInstructor(reservationStatus, reservation);
+        break;
 
-        }
+      case Role.instructor:
+        _checkGoToReservationAdminInstructor(reservationStatus, reservation);
         break;
 
       case Role.pilot:
         if (reservationStatus == ReservationStatus.pending || reservationStatus == ReservationStatus.approved) {
           _gotoDetailReservation(context, reservation);
+        } else if (reservationStatus == ReservationStatus.readytopay) {
+          _checkGoToPay(context,reservation);
         }
         break;
 
@@ -323,19 +370,45 @@ class _ScheduleViewState extends State<ScheduleView> {
       case Role.registered:
         if (reservationStatus == ReservationStatus.pending || reservationStatus == ReservationStatus.approved) {
           _gotoDetailReservation(context, reservation);
+        } else if (reservationStatus == ReservationStatus.readytopay) {
+          _checkGoToPay(context,reservation);
         }
         break;
     }
   }
 
-  void _onDaySelected(DateTime day, List events, List holidays) {
-    _scheduleBloc.loadSchedule(day);
+  void _checkGoToReservationAdminInstructor(ReservationStatus reservationStatus, Reservation reservation) {
+    if (reservationStatus == ReservationStatus.pending) {
+      _gotoDetailReservation(context, reservation);
+    } else if (reservationStatus == ReservationStatus.approved) {
+      if (reservation.aircraft?.serialNoke?.isEmpty ?? false) {
+        _gotoCheckFlight(reservation);
+      } else {
+        _gotoNoke(reservation);
+      }
+    } else if (reservationStatus == ReservationStatus.flying) {
+      _gotoCheckFlight(reservation);
+    } else if (reservationStatus == ReservationStatus.finished) {
+      _gotoGroundInstruction(context,reservation);
+    } else if (reservationStatus == ReservationStatus.readytopay) {
+      _checkGoToPay(context,reservation);
+    }
+  }
+
+  void _onDaySelected(DateTime selectedDay, DateTime focusedDay) {
+    setState(() {
+      _selectedDay = selectedDay;
+      _focusedDay = focusedDay;
+      _scheduleBloc.loadSchedule(selectedDay);
+    });
+
   }
   
   void createReservation(BuildContext context) {
     final prefs = SharedPreferencesUser();
     final Role role = enumFromString(Role.values, prefs.role);
     switch (role) {
+      case Role.admin:
       case Role.instructor:
       case Role.pilot:
       case Role.student:
@@ -343,32 +416,105 @@ class _ScheduleViewState extends State<ScheduleView> {
         break;
 
       case Role.registered:
-        showMessage(context, "Error create reservation", "You do not have permission to create a reservation, contact the administrator.") ;
+        showMessage(context, "Error create reservation", "To create a reservation you must upload the documents in your profile.") ;
         break;
     }
   }
 
   void gotoReservationView() async {
-    final DateTime date = await Navigator.push(
+    final DateTime? date = await Navigator.push(
       context,
       MaterialPageRoute(
-          builder: (context) => ReservationView()),
+          builder: (context) => ReservationView(currentDaySelected: _selectedDay,)),
     );
 
     if(date != null) {
       setState(() {
-        _selectDay = date;
-        _calendarController.setSelectedDay(_selectDay);
-        _onDaySelected(date, null, null);
+        _selectedDay = date;
+        _onDaySelected(date, DateTime.now());
       });
     }
   }
 
   void _gotoDetailReservation(BuildContext context, Reservation reservation) async {
     final result = await Navigator.of(context).pushNamed(DetailReservationView.routeName, arguments: {"reservation": reservation});
+    if (result != null && result as bool && result) {
+      setState(() {
+        _onDaySelected(_selectedDay, DateTime.now());
+      });
+    }
   }
 
-  void _gotoNoke() {
-    Navigator.of(context).pushNamed(NokeView.routeName);
+  void _gotoNoke(Reservation reservation) async {
+    Navigator.of(context).push(MaterialPageRoute(builder: (context) => NokeView(reservation: reservation, checkSerial: true,)));
+    /*final result = await Navigator.of(context).push(MaterialPageRoute(builder: (context) => NokeView(reservation: reservation, checkSerial: true,))) as bool;
+    if (result != null && result) {
+      setState(() {
+        _onDaySelected(_selectedDay, DateTime.now());
+      });
+    }*/
+  }
+
+  void _gotoCheckFlight(Reservation reservation) async {
+    final result = await Navigator.of(context).pushNamed(CheckFlightView.routeName, arguments: {"reservation": reservation});
+    if (result != null && result as bool && result) {
+      setState(() {
+        _onDaySelected(_selectedDay, DateTime.now());
+      });
+    }
+  }
+
+  void _gotoGroundInstruction(BuildContext context, Reservation reservation) async {
+    final result = await Navigator.of(context).pushNamed(GroundInstructionView.routeName, arguments: {"reservationId": reservation.sId});
+    if (result != null && result as bool && result) {
+      setState(() {
+        _onDaySelected(_selectedDay, DateTime.now());
+      });
+    }
+  }
+
+  void _checkGoToPay(BuildContext context, Reservation reservation) async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    final _paymentApi = PaymentApi();
+    final paymentEnabled = await _paymentApi.checkPay();
+    setState(() {
+      _isLoading = false;
+    });
+
+    if(paymentEnabled) {
+      _gotoPay(context, reservation);
+    }
+  }
+
+  void _gotoPay(BuildContext context, Reservation reservation) async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    final _paymentApi = PaymentApi();
+    final paymentResponse =
+    await _paymentApi.goToPay(reservation?.sId ?? "");
+    setState(() {
+      _isLoading = false;
+    });
+
+    if(paymentResponse != null) {
+      if(paymentResponse is Pay) {
+        final result = await Navigator.of(context).pushNamed(OpenWebView.routeName, arguments: {"url": paymentResponse.url});
+        if (result != null && result as bool && result) {
+          setState(() {
+            _onDaySelected(_selectedDay, DateTime.now());
+          });
+        }
+      } else if(paymentResponse is String) {
+        final String codeError = paymentResponse;
+        showMessage(context, "Error pay reservation", codeError);
+      }
+    } else {
+      showMessage(context, "Error Pay", "Error pay reservation.");
+    }
   }
 }

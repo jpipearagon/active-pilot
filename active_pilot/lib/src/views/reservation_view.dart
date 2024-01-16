@@ -14,11 +14,19 @@ import 'package:flutter/material.dart';
 import 'package:loading_overlay/loading_overlay.dart';
 import 'package:intl/intl.dart';
 import 'package:lottie/lottie.dart';
+import '../../utils/date_util.dart';
+import '../models/UserRole.dart';
+import '../sharedpreferences/shared_preferences_user.dart';
+import '../widgets/message_widget.dart';
 import 'confirmation_view.dart';
 
 class ReservationView extends StatefulWidget {
 
   static final routeName = "reservation";
+
+  final DateTime? currentDaySelected;
+
+  ReservationView({this.currentDaySelected});
 
   @override
   _ReservationViewState createState() => _ReservationViewState();
@@ -30,22 +38,26 @@ class _ReservationViewState extends State<ReservationView> {
   DateTime _chosenDateTimeStart =  DateTime.now();
   final TextEditingController _textEditingControllerDateEnd = TextEditingController();
   DateTime _chosenDateTimeEnd =  DateTime.now().add(Duration(hours: 2));
-  var formatter = DateFormat("yyyy/MM/dd HH:mm a");
+  final formatter = DateFormat(DateUtil.MMMddyyyyHHmmaa);
   String _strLocation = "Select Location";
-  LocationUser _locationUser;
+  LocationUser? _locationUser;
   String _strActivity = "Select Activity";
-  Activity _activity;
+  Activity? _activity;
   String _strInstructor = "Select Instructor";
-  UserDetail _userDetail;
+  UserDetail? _userDetail;
   String _strAircraft = "Select Aircraft";
-  Aircraft _aircraft;
+  Aircraft? _aircraft;
   String _strAircraftRegistration = "";
   bool _isLoading = false;
 
   @override
   void initState() {
     super.initState();
+
+    _chosenDateTimeStart = widget.currentDaySelected ?? DateTime.now();
+    _chosenDateTimeEnd = widget.currentDaySelected?.add(Duration(hours: 2)) ?? DateTime.now().add(Duration(hours: 2));
   }
+
   @override
   Widget build(BuildContext context) {
     return LoadingOverlay(
@@ -434,12 +446,14 @@ class _ReservationViewState extends State<ReservationView> {
                           child: ButtonTheme(
                             minWidth: size.width * 0.48,
                             height: size.height * 0.064,
-                            child: RaisedButton(
-                              shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(22.5),
-                                  side: BorderSide(color: Colors.transparent)
+                            child: ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: isCompletedReservation() ? Color.fromRGBO(223, 173, 78, 1) : Color.fromRGBO(106,107,108,1),
+                                shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(22.5),
+                                    side: BorderSide(color: Colors.transparent)
+                                ),
                               ),
-                              color: isCompletedReservation() ? Color.fromRGBO(223, 173, 78, 1) : Color.fromRGBO(106,107,108,1),
                               child: Text(
                                 "Continue ",
                                 style: TextStyle(
@@ -568,7 +582,7 @@ class _ReservationViewState extends State<ReservationView> {
           builder: (BuildContext context) {
             return AlertDialog(
               content: SelectDataView(type: type,
-                data: locations,
+                data: locations ?? [],
                 onTap: (type, data) => _selectData(type, data),),
             );
           });
@@ -586,7 +600,7 @@ class _ReservationViewState extends State<ReservationView> {
           builder: (BuildContext context) {
             return AlertDialog(
               content: SelectDataView(type: type,
-                data: activities,
+                data: activities ?? [],
                 onTap: (type, data) => _selectData(type, data),),
             );
           });
@@ -596,20 +610,31 @@ class _ReservationViewState extends State<ReservationView> {
       if (_locationUser != null) {
         _showLoading();
         final instructorsApi = InstructorApi();
-        final instructors = await instructorsApi.getAvailableInstructor(_chosenDateTimeStart.toIso8601String(), _chosenDateTimeEnd.toIso8601String(), _locationUser.id);
+        final instructors = await instructorsApi.getAvailableInstructor(_chosenDateTimeStart.toIso8601String(), _chosenDateTimeEnd.toIso8601String(), _locationUser?.id ?? "");
         setState(() {
           _isLoading = false;
         });
         if(instructors != null) {
-          showDialog(
-              context: context,
-              builder: (BuildContext context) {
-                return AlertDialog(
-                  content: SelectDataView(type: type,
-                    data: instructors,
-                    onTap: (type, data) => _selectData(type, data),),
-                );
-              });
+          if(instructors.isNotEmpty){
+            final prefs = SharedPreferencesUser();
+            final Role role = enumFromString(Role.values, prefs.role);
+            if(role == Role.instructor || role == Role.admin || (role == Role.pilot && prefs.flyAlone)) {
+              instructors.insert(0, UserDetail.none(prefs.userId));
+            }
+            showDialog(
+                context: context,
+                builder: (BuildContext context) {
+                  return AlertDialog(
+                    content: SelectDataView(type: type,
+                      data: instructors,
+                      onTap: (type, data) => _selectData(type, data),),
+                  );
+                });
+          } else {
+            showMessage(context, "Error Instructors", "Sorry, we can't find instructors!");
+          }
+        } else {
+          showMessage(context, "Error Instructors", "Sorry, we can't find instructors!");
         }
       }
     }
@@ -619,21 +644,27 @@ class _ReservationViewState extends State<ReservationView> {
       if (_locationUser != null && _activity != null && _userDetail != null) {
         _showLoading();
         final aircraftApi = AircraftApi();
-        final aircrafts = await aircraftApi.getAvailableAircrafts(_chosenDateTimeStart.toIso8601String(), _chosenDateTimeEnd.toIso8601String(), _locationUser.id, _activity.id, _userDetail.pilot.aircraftCategory);
+        final aircrafts = await aircraftApi.getAvailableAircrafts(_chosenDateTimeStart.toIso8601String(), _chosenDateTimeEnd.toIso8601String(), _locationUser?.id ?? "", _activity?.id ?? "", _userDetail?.id ?? "");
         setState(() {
           _isLoading = false;
         });
         if(aircrafts != null) {
-          showDialog(
-              context: context,
-              builder: (BuildContext context) {
-                return AlertDialog(
-                  backgroundColor: Colors.transparent,
-                  content: SelectDataView(type: type,
-                    data: aircrafts,
-                    onTap: (type, data) => _selectData(type, data),),
-                );
-              });
+          if(aircrafts.isNotEmpty) {
+            showDialog(
+                context: context,
+                builder: (BuildContext context) {
+                  return AlertDialog(
+                    backgroundColor: Colors.transparent,
+                    content: SelectDataView(type: type,
+                      data: aircrafts,
+                      onTap: (type, data) => _selectData(type, data),),
+                  );
+                });
+          } else {
+            showMessage(context, "Error Aircrafts", "Sorry, we can't find aircrafts!");
+          }
+        } else {
+          showMessage(context, "Error Aircrafts", "Sorry, we can't find aircrafts!");
         }
       }
     }
@@ -644,26 +675,42 @@ class _ReservationViewState extends State<ReservationView> {
     if(type == Types.location) {
       _locationUser = dataSelect;
       setState(() {
-        _strLocation = _locationUser.name;
+        _strLocation = _locationUser?.name ?? "";
+        _strActivity = "Select Activity";
+        _activity = null;
+        _strInstructor = "Select Instructor";
+        _userDetail = null;
+        _strAircraft = "Select Aircraft";
+        _strAircraftRegistration = "";
+        _aircraft = null;
       });
     }
     if(type == Types.activity) {
       _activity = dataSelect;
       setState(() {
-        _strActivity = _activity.name;
+        _strActivity = _activity?.name ?? "";
+        _strInstructor = "Select Instructor";
+        _userDetail = null;
+        _strAircraft = "Select Aircraft";
+        _strAircraftRegistration = "";
+        _aircraft = null;
       });
     }
     if(type == Types.instructor) {
+
       _userDetail = dataSelect;
       setState(() {
-        _strInstructor = "${_userDetail.firstName} ${_userDetail.lastName}";
+        _strInstructor = "${_userDetail?.firstName} ${_userDetail?.lastName}";
+        _strAircraft = "Select Aircraft";
+        _strAircraftRegistration = "";
+        _aircraft = null;
       });
     }
     if(type == Types.aircraft) {
       _aircraft = dataSelect;
       setState(() {
-        _strAircraft = "${_aircraft.aircraftModel.name} ${_aircraft.aircraftMaker.name}";
-        _strAircraftRegistration = "${_aircraft.registrationTail}";
+        _strAircraft = "${_aircraft?.aircraftModel?.name} ${_aircraft?.aircraftMaker?.name}";
+        _strAircraftRegistration = "${_aircraft?.registrationTail}";
       });
     }
   }
@@ -687,9 +734,10 @@ class _ReservationViewState extends State<ReservationView> {
     final reservationData = {
       "startDate": _chosenDateTimeStart,
       "endDate": _chosenDateTimeEnd,
-      "activityId" : _activity.id,
-      "instructorId": _userDetail.id,
-      "aircraftId": _aircraft.sId,
+      "activityId" : _activity?.id,
+      "instructorId": _userDetail?.id,
+      "aircraftId": _aircraft?.sId,
+      "locationId": _locationUser?.id
     };
 
 

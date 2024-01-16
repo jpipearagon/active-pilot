@@ -35,7 +35,9 @@ class ScheduleBloc {
     final response = await scheduleApi.getScheduleByDate(
         '$startDate' + 'T00:00:00$timeZone',
         '$startDate' + 'T23:59:59$timeZone');
-    scheduleSink(response);
+    if(response != null) {
+      scheduleSink(response);
+    }
     return null;
   }
 }

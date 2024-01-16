@@ -95,12 +95,14 @@ class _LoginViewState extends State<LoginView> {
                       child: ButtonTheme(
                         minWidth: 154.0,
                         height: 36.0,
-                        child: RaisedButton(
-                          shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(18.0),
-                              side: BorderSide(color: Colors.transparent)
+                        child: ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Color.fromRGBO(223, 173, 78, 1),
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(18.0),
+                                side: BorderSide(color: Colors.transparent)
+                            ),
                           ),
-                          color: Color.fromRGBO(223, 173, 78, 1),
                           child: Text(
                             "Login",
                             style: TextStyle(
@@ -248,10 +250,10 @@ class _LoginViewState extends State<LoginView> {
       if(statusLogin is LoginUser) {
         final prefs = SharedPreferencesUser();
         prefs.userLogged = true;
-        prefs.userId = statusLogin.user.id;
-        prefs.jwtToken = statusLogin.jwtToken;
-        prefs.refreshToken = statusLogin.refreshToken;
-        prefs.role = statusLogin.user.role;
+        prefs.userId = statusLogin.user?.id ?? "";
+        prefs.jwtToken = statusLogin.jwtToken ?? "";
+        prefs.refreshToken = statusLogin.refreshToken ?? "";
+        prefs.role = statusLogin.user?.role ?? "";
         setState(() {
           _isLoading = false;
         });

@@ -5,10 +5,10 @@ import 'carousel_image_view.dart';
 
 class FullCarouselImageView extends StatelessWidget {
 
-  final String keyHero;
-  final List<Photo> listImages;
-  final String feedId;
-  final double height;
+  final String? keyHero;
+  final List<Photo>? listImages;
+  final String? feedId;
+  final double? height;
 
   FullCarouselImageView({this.height, this.feedId, this.keyHero, this.listImages});
 
@@ -47,7 +47,7 @@ class FullCarouselImageView extends StatelessWidget {
 
   Widget _image(BuildContext context) {
 
-    final heightTop = (MediaQuery.of(context).size.height/2) - (height/2);
+    final heightTop = (MediaQuery.of(context).size.height/2) - (height ?? 0/2);
 
     return Container(
       margin: EdgeInsets.only(top: heightTop),
@@ -55,11 +55,11 @@ class FullCarouselImageView extends StatelessWidget {
       width: double.infinity,
       child: Center(
         child:  Hero(
-            tag: keyHero,
+            tag: keyHero ?? 0,
             child: CarouselImagesWidget(
               key: PageStorageKey("$feedId"),
               height: height,
-              imagesCarousel: _images(listImages),
+              imagesCarousel: _images(listImages ?? []),
             )
         ),
       ),
@@ -69,7 +69,7 @@ class FullCarouselImageView extends StatelessWidget {
   List<Widget> _images(List<Photo> list) {
     return list.map((resource) {
       return Image.network(
-        resource.url,
+        resource.url ?? "",
         fit: BoxFit.fitHeight,
         filterQuality: FilterQuality.high,
       );

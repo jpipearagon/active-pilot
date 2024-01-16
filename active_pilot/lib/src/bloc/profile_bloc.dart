@@ -11,7 +11,7 @@ class ProfileBloc {
   ProfileBloc._internal();
 
   StreamController _profileController = StreamController<UserDetail>.broadcast();
-  Stream<UserDetail> get streamProfile => _profileController.stream;
+  Stream<UserDetail> get streamProfile => _profileController.stream as Stream<UserDetail>;
 
   factory ProfileBloc() {
     return _singleton;
@@ -25,9 +25,9 @@ class ProfileBloc {
     final prefs = SharedPreferencesUser();
     final userDetail = UserDetailApi();
     final response = await userDetail.userDetail(prefs.userId);
-    if(response.pilot != null) {
-      prefs.isPilot = response.pilot != null ? true : false ;
-      prefs.flyAlone = response.pilot.flyAlone != null ? response.pilot.flyAlone : false;
+    if(response?.pilot != null) {
+      prefs.isPilot = response?.pilot != null ? true : false ;
+      prefs.flyAlone = (response?.pilot?.flyAlone != null ? response?.pilot?.flyAlone : false) ?? false;
     }
     _profileController.sink.add(response);
     return null;

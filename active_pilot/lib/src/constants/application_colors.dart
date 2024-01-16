@@ -1,21 +1,12 @@
 import 'package:flutter/material.dart';
 
 class ApplicationColors {
-  static ApplicationColors _singleton;
+  ApplicationColors._internal();
+  static ApplicationColors _singleton = ApplicationColors._internal();
 
-  Color primaryColor;
-  Color backArrow;
-
+  Color primaryColor = const Color(0xFF042944);
+  Color backArrow = const Color(0xFFDFAD4E);
   factory ApplicationColors() {
-    if (_singleton == null) {
-      _singleton = ApplicationColors._();
-    }
-
-    _singleton.primaryColor = const Color(0xFF042944);
-    _singleton.backArrow = const Color(0xFFDFAD4E);
-
     return _singleton;
   }
-
-  ApplicationColors._();
 }

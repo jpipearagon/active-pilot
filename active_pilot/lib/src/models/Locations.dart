@@ -1,9 +1,9 @@
 
 class LocationUser {
-    int v;
-    String id;
-    bool deleted;
-    String name;
+    int? v;
+    String? id;
+    bool? deleted;
+    String? name;
 
     LocationUser({this.v, this.id, this.deleted, this.name});
 

@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 
 class CarouselImagesWidget extends StatefulWidget {
-  final PageStorageKey key;
-  final double height;
-  final List<Widget> imagesCarousel;
+  final PageStorageKey? key;
+  final double? height;
+  final List<Widget>? imagesCarousel;
 
   CarouselImagesWidget({this.key, this.height, this.imagesCarousel});
 
@@ -24,7 +24,7 @@ class _CarouselImagesWidgetState extends State<CarouselImagesWidget> {
               initialPage: 0,
               disableCenter: false,
               viewportFraction: 2,
-              height: widget.height-30,
+              height: widget.height ?? 0 - 30,
               pageViewKey: widget.key,
               onPageChanged: (index, reason) {
                 setState(() {
@@ -33,8 +33,8 @@ class _CarouselImagesWidgetState extends State<CarouselImagesWidget> {
               })),
       Row(
         mainAxisAlignment: MainAxisAlignment.center,
-        children: widget.imagesCarousel.map((url) {
-          int index = widget.imagesCarousel.indexOf(url);
+        children: widget.imagesCarousel!.map((url) {
+          int? index = widget.imagesCarousel?.indexOf(url);
           return Container(
             width: 8.0,
             height: 8.0,

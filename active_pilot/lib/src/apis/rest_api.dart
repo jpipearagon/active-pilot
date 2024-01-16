@@ -1,7 +1,7 @@
 import 'package:aircraft/src/models/CodeError.dart';
+import 'package:aircraft/src/models/ImageFile.dart';
 import 'package:aircraft/src/models/LoginUser.dart';
 import 'package:aircraft/src/sharedpreferences/shared_preferences_user.dart';
-import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'dart:async';
 import 'dart:convert';
@@ -12,7 +12,7 @@ import 'dart:io';
 class RestApi {
   final String _baseUrl = "api-dev.activepilot.com";
 
-  Future<dynamic> get({ @required String endPoint, Map<String, String> queryParameters}) async {
+  Future<dynamic> get({ required String endPoint, Map<String, String>? queryParameters}) async {
     var responseJson;
     try {
       final url = Uri.https(_baseUrl, endPoint, queryParameters);
@@ -37,7 +37,7 @@ class RestApi {
     return responseJson;
   }
 
-  Future<dynamic> post({ @required String endPoint, Map<String, dynamic> queryParameters}) async {
+  Future<dynamic> post({ required String endPoint, Map<String, dynamic>? queryParameters}) async {
     var responseJson;
     try {
       final url = Uri.https(_baseUrl, endPoint);
@@ -63,7 +63,33 @@ class RestApi {
     return responseJson;
   }
 
-  Future<dynamic> patch({ @required String endPoint, Map<String, dynamic> queryParameters}) async {
+  Future<dynamic> delete({ required String endPoint, Map<String, dynamic>? queryParameters}) async {
+    var responseJson;
+    try {
+      final url = Uri.https(_baseUrl, endPoint);
+      final Map<String, String> headers = {
+        HttpHeaders.userAgentHeader: "CFNetwork/1121.2.1 Darwin/19.3.0",
+        HttpHeaders.contentTypeHeader: "application/x-www-form-urlencoded",
+      };
+      final prefs = SharedPreferencesUser();
+      if(prefs.jwtToken.isNotEmpty) {
+        headers[HttpHeaders.authorizationHeader] = "bearer " + prefs.jwtToken;
+      }
+      final response = await http.delete(url, headers: headers,
+          body: queryParameters).timeout(const Duration(seconds: 60));
+      responseJson = _response(response);
+    } on TimeoutException  {
+      throw FetchDataException('Timeout connection');
+    } on SocketException {
+      throw FetchDataException('No Internet connection');
+    } on UnauthorisedException {
+      await refreshToken();
+      responseJson = await delete(endPoint: endPoint, queryParameters: queryParameters);
+    }
+    return responseJson;
+  }
+
+  Future<dynamic> patch({ required String endPoint, Map<String, dynamic>? queryParameters}) async {
     var responseJson;
     try {
       final url = Uri.https(_baseUrl, endPoint);
@@ -84,7 +110,44 @@ class RestApi {
       throw FetchDataException('No Internet connection');
     } on UnauthorisedException {
       await refreshToken();
-      responseJson = await post(endPoint: endPoint, queryParameters: queryParameters);
+      responseJson = await patch(endPoint: endPoint, queryParameters: queryParameters);
+    }
+    return responseJson;
+  }
+
+  Future<dynamic> multipart({required String method, required String endPoint, Map<String, String>? fields, List<ImageFile>? files}) async {
+    var responseJson;
+    try {
+      final url = Uri.https(_baseUrl, endPoint);
+      var request =  http.MultipartRequest(
+          method, url
+      );
+      request.headers[HttpHeaders.userAgentHeader] = "CFNetwork/1121.2.1 Darwin/19.3.0";
+      final prefs = SharedPreferencesUser();
+      if(prefs.jwtToken.isNotEmpty) {
+        request.headers[HttpHeaders.authorizationHeader] = "bearer " + prefs.jwtToken;
+      }
+      fields?.forEach((k,v) {
+        request.fields[k] = v;
+      });
+
+      if(files != null) {
+        await Future.forEach(files, (ImageFile imageFile) async {
+          request.files.add( await http.MultipartFile.fromPath(
+              imageFile.name ?? "", imageFile.file?.path ?? ""
+          ));
+        });
+      }
+      final response = await request.send();
+      final res = await http.Response.fromStream(response);
+      responseJson = _response(res);
+    } on TimeoutException  {
+      throw FetchDataException('Timeout connection');
+    } on SocketException {
+      throw FetchDataException('No Internet connection');
+    } on UnauthorisedException {
+      await refreshToken();
+      responseJson = await multipart(method: method, endPoint: endPoint, fields: fields, files: files);
     }
     return responseJson;
   }
@@ -103,8 +166,8 @@ class RestApi {
       }, body: params).timeout(const Duration(seconds: 60));
       responseJson = _response(response);
       final user = LoginUser.fromJson(responseJson);
-      prefs.jwtToken = user.jwtToken;
-      prefs.refreshToken = user.refreshToken;
+      prefs.jwtToken = user.jwtToken ?? "";
+      prefs.refreshToken = user.refreshToken ?? "";
     } on TimeoutException  {
       throw FetchDataException('Timeout connection');
     } on SocketException {
@@ -126,7 +189,7 @@ class RestApi {
       case 401:
         throw UnauthorisedException(response.body.toString());
       case 403:
-        throw UnauthorisedException(response.body.toString());
+        throw PermissionsException(response.body.toString());
       case 500:
         final responseJson = json.decode(response.body.toString());
         final codeError = CodeError.fromJson(responseJson);

@@ -1,6 +1,6 @@
 class CodeError {
-  String code;
-  String message;
+  String? code;
+  String? message;
 
   CodeError({this.code, this.message});
 

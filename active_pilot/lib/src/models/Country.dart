@@ -1,7 +1,7 @@
 class Country {
-    String id;
-    bool deleted;
-    String name;
+    String? id;
+    bool? deleted;
+    String? name;
 
     Country({this.id, this.deleted, this.name});
 

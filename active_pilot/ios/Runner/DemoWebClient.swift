@@ -9,8 +9,8 @@
 import Foundation
 import NokeMobileLibrary
 
-let serverUrl = "https://coreapi-sandbox.appspot.com/"
-let privateKey = "eyJhbGciOiJOT0tFX1BSSVZBVEVfU0FOREJPWCIsInR5cCI6IkpXVCJ9.eyJhbGciOiJOT0tFX1BSSVZBVEVfU0FOREJPWCIsImNvbXBhbnlfdXVpZCI6ImIxMDQwZTFhLTVmYTUtNGY3NC04ZGM3LTU1ZTBkZTlmMWVmMCIsImlzcyI6Im5va2UuY29tIn0.a076a54e54acf68a57ca4ff8446fafac73c9de72"
+let serverUrl = "https://coreapi-beta.uc.r.appspot.com/"
+let privateKey = "eyJhbGciOiJOT0tFX1BSSVZBVEUiLCJ0eXAiOiJKV1QifQ.eyJhbGciOiJOT0tFX1BSSVZBVEUiLCJjb21wYW55X3V1aWQiOiIyZmQ2MGM1NS0xNGRmLTQxZWUtYWUyYS0wYjliOTY0OGQxNWUiLCJpc3MiOiJub2tlLmNvbSJ9.a1138da380ba229cf31d1ddd547e301e282492d8"
 
 public protocol DemoWebClientDelegate{
     func didReceiveUnlockResponse(data: Data)

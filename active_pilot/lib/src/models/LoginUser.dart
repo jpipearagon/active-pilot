@@ -1,9 +1,9 @@
 import 'User.dart';
 
 class LoginUser {
-    String jwtToken;
-    String refreshToken;
-    User user;
+    String? jwtToken;
+    String? refreshToken;
+    User? user;
 
     LoginUser({this.jwtToken, this.refreshToken, this.user});
 
@@ -20,7 +20,7 @@ class LoginUser {
         data['jwtToken'] = this.jwtToken;
         data['refreshToken'] = this.refreshToken;
         if (this.user != null) {
-            data['user'] = this.user.toJson();
+            data['user'] = this.user?.toJson();
         }
         return data;
     }

@@ -6,7 +6,7 @@ class InstructorApi {
 
   final RestApi _restApi = RestApi();
 
-  Future<List<UserDetail>> getInstructors() async {
+  Future<List<UserDetail>?> getInstructors() async {
     try {
       List<dynamic> response = await _restApi.get(endPoint: "/api/instructors/");
       final list = response.map((data) {
@@ -19,7 +19,7 @@ class InstructorApi {
     }
   }
 
-  Future<List<UserDetail>> getAvailableInstructor(String startDate, String endDate, String locationId) async {
+  Future<List<UserDetail>?> getAvailableInstructor(String startDate, String endDate, String locationId) async {
     try {
       final Map<String, String> params = {
         "start": startDate,

@@ -5,16 +5,16 @@ import 'rest_api.dart';
 class ScheduleApi {
   final RestApi _restApi = RestApi();
 
-  Future<List<Reservation>> getScheduleByDate(
+  Future<List<Reservation>?> getScheduleByDate(
       String startDate, String endDate) async {
     try {
-      final Map<String, String> params = {
+      /*final Map<String, String> params = {
         "start": startDate,
         "end": endDate,
-      };
+      };*/
 
       List<dynamic> response = await _restApi.get(
-          endPoint: '/api/reservations', queryParameters: params);
+          endPoint: '/api/reservations', queryParameters: { });
       final list = response.map((data) {
         return Reservation.fromJson(data);
       });

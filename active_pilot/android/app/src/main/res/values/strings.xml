@@ -1,0 +1,10 @@
+<resources>
+    <string name="location_access_required" translatable="false">Location Access Required</string>
+    <string name="location_permission_request_message" translatable="false">The Noke Mobile Library requires location access in order to scan for Noke devices</string>
+    <string name="functionality_limited" translatable="false">Functionality Limited</string>
+    <string name="no_location_message" translatable="false">Location access has not been granted. App will not be able to discover Noke devices.</string>
+    <string name="bluetooth_turn_on" translatable="false">Turn on Bluetooth</string>
+    <string name="bluetooth_request_message" translatable="false">Please turn on the bluetooth to open the noke.</string>
+    <string name="location_turn_on" translatable="false">Turn on Location</string>
+    <string name="location_request_message" translatable="false">Please turn on the location to open the noke.</string>
+</resources>

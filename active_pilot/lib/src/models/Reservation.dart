@@ -1,20 +1,22 @@
 
 import 'Activities.dart';
 import 'Aircraft.dart';
+import 'PayingReservation.dart';
 import 'UserDetail.dart';
 
 class Reservation {
-  bool approved;
-  bool deleted;
-  String sId;
-  String start;
-  String end;
-  Aircraft aircraft;
-  Instructor instructor;
-  Pilot pilot;
-  Activity activity;
-  Status status;
-  int iV;
+  bool? approved;
+  bool? deleted;
+  String? sId;
+  String? start;
+  String? end;
+  Aircraft? aircraft;
+  UserInstructor? userInstructor;
+  UserPilot? userPilot;
+  Activity? activity;
+  Status? status;
+  PayingReservation? paying;
+  int? iV;
 
   Reservation(
       {this.approved,
@@ -23,10 +25,11 @@ class Reservation {
         this.start,
         this.end,
         this.aircraft,
-        this.instructor,
-        this.pilot,
+        this.userInstructor,
+        this.userPilot,
         this.activity,
         this.status,
+        this.paying,
         this.iV});
 
   Reservation.fromJson(Map<String, dynamic> json) {
@@ -38,15 +41,20 @@ class Reservation {
     aircraft = json['aircraft'] != null
         ? new Aircraft.fromJson(json['aircraft'])
         : null;
-    instructor = json['instructor'] != null
-        ? new Instructor.fromJson(json['instructor'])
+    userInstructor = json['userInstructor'] != null
+        ? new UserInstructor.fromJson(json['userInstructor'])
         : null;
-    pilot = json['pilot'] != null ? new Pilot.fromJson(json['pilot']) : null;
+    userPilot = json['userPilot'] != null
+        ? new UserPilot.fromJson(json['userPilot'])
+        : null;
     activity = json['activity'] != null
         ? new Activity.fromJson(json['activity'])
         : null;
     status =
     json['status'] != null ? new Status.fromJson(json['status']) : null;
+    paying = json['paying'] != null
+        ? new PayingReservation.fromJson(json['paying'])
+        : null;
     iV = json['__v'];
   }
 
@@ -58,19 +66,19 @@ class Reservation {
     data['start'] = this.start;
     data['end'] = this.end;
     if (this.aircraft != null) {
-      data['aircraft'] = this.aircraft.toJson();
+      data['aircraft'] = this.aircraft?.toJson();
     }
-    if (this.instructor != null) {
-      data['instructor'] = this.instructor.toJson();
+    if (this.userInstructor != null) {
+      data['userInstructor'] = this.userInstructor?.toJson();
     }
-    if (this.pilot != null) {
-      data['pilot'] = this.pilot.toJson();
+    if (this.userPilot != null) {
+      data['userPilot'] = this.userPilot?.toJson();
     }
     if (this.activity != null) {
-      data['activity'] = this.activity.toJson();
+      data['activity'] = this.activity?.toJson();
     }
     if (this.status != null) {
-      data['status'] = this.status.toJson();
+      data['status'] = this.status?.toJson();
     }
     data['__v'] = this.iV;
     return data;
@@ -78,16 +86,16 @@ class Reservation {
 }
 
 class Status {
-  String sId;
-  String name;
-  String color;
+  String? sId;
+  String? name;
+  String? color;
 
   Status({this.sId, this.name, this.color});
 
   Status.fromJson(Map<String, dynamic> json) {
-    sId = json['_id'];
-    name = json['name'];
-    color = json['color'];
+    sId = json['_id'] != null ? json['_id'] : "";
+    name = json['name'] != null ? json['name'] : "" ;
+    color = json['color'] != null ? json['color'] : "#000000";
   }
 
   Map<String, dynamic> toJson() {

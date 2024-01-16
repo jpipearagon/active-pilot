@@ -1,18 +1,19 @@
 import 'package:aircraft/src/models/Activities.dart';
 import 'package:aircraft/src/models/Aircraft.dart';
 import 'package:aircraft/src/models/Locations.dart';
+import 'package:aircraft/src/models/ProfileCountry.dart';
 import 'package:aircraft/src/models/UserDetail.dart';
 import 'package:aircraft/src/views/aircraft_detail_view.dart';
 import 'package:flutter/material.dart';
 
-enum Types { location, activity, instructor, aircraft }
+enum Types { location, activity, instructor, aircraft, country }
 
 class SelectDataView extends StatefulWidget {
 
   final Function onTap;
   final Types type;
   final List<dynamic> data;
-  SelectDataView({Key key, @required this.data, @required this.type, @required this.onTap}) : super(key: key);
+  SelectDataView({Key? key, required this.data, required this.type, required this.onTap}) : super(key: key);
 
   @override
   _SelectDataViewState createState() => _SelectDataViewState();
@@ -62,11 +63,11 @@ class _SelectDataViewState extends State<SelectDataView> {
     Aircraft aircraft = data;
 
     Widget image;
-    if(aircraft.photos.length > 0 ) {
+    if((aircraft.photos?.length ?? 0) > 0 ) {
       image = Image(
         width: 50,
         height: 50,
-        image: NetworkImage("${aircraft.photos[0].url}"),
+        image: NetworkImage("${aircraft.photos?[0].url}"),
       );
     } else {
       image = Icon(
@@ -88,7 +89,7 @@ class _SelectDataViewState extends State<SelectDataView> {
                   fontFamily: "Montserrat",
                   fontWeight: FontWeight.w600),
             ),
-            subtitle: Text("${aircraft.aircraftModel.name} ${aircraft.aircraftMaker.name}",
+            subtitle: Text("${aircraft.aircraftModel?.name} ${aircraft.aircraftMaker?.name}",
               style: TextStyle(
                   color: Color.fromRGBO(0,0,0,1),
                   fontSize: 14,
@@ -122,12 +123,14 @@ class _SelectDataViewState extends State<SelectDataView> {
               Expanded(
                 child: ButtonTheme(
                   height: 25.0,
-                  child: RaisedButton(
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12.0),
-                        side: BorderSide(color: Colors.transparent)
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Color.fromRGBO(223, 173, 78, 1), // background
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12.0),
+                          side: BorderSide(color: Colors.transparent)
+                      ),
                     ),
-                    color: Color.fromRGBO(223, 173, 78, 1),
                     child: Text(
                       "Select",
                       style: TextStyle(
@@ -158,7 +161,7 @@ class _SelectDataViewState extends State<SelectDataView> {
       LocationUser location = data;
       return ListTile(
         title: Text(
-            location.name
+            location?.name ?? ""
         ),
         onTap: () {
           Navigator.pop(context);
@@ -193,6 +196,18 @@ class _SelectDataViewState extends State<SelectDataView> {
       );
     }
 
+    if (widget.type == Types.country) {
+      ProfileCountry location = data;
+      return ListTile(
+        title: Text(
+            location?.name ?? ""
+        ),
+        onTap: () {
+          Navigator.pop(context);
+          widget.onTap(widget.type, location);
+        },
+      );
+    }
 
     return Container();
   }

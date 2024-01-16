@@ -10,7 +10,7 @@ class CustomException implements Exception {
 }
 
 class FetchDataException extends CustomException {
-  FetchDataException([String message])
+  FetchDataException([String? message])
       : super(message, "Error During Communication: ");
 }
 
@@ -22,8 +22,12 @@ class UnauthorisedException extends CustomException {
   UnauthorisedException([message]) : super(message, "Unauthorised: ");
 }
 
+class PermissionsException extends CustomException {
+  PermissionsException([message]) : super("", "The user is not authorized to perform this operation");
+}
+
 class InvalidInputException extends CustomException {
-  InvalidInputException([String message]) : super(message, "Invalid Input: ");
+  InvalidInputException([String? message]) : super(message, "Invalid Input: ");
 }
 
 class InternalServerException extends CustomException {

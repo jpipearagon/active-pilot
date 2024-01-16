@@ -2,20 +2,20 @@
 import 'Country.dart';
 
 class RegisterUser {
-    int v;
-    String id;
-    Country country;
-    String dateBirth;
-    bool deleted;
-    String email;
-    String firstName;
-    String gender;
-    String lastName;
-    String password;
-    String phone;
-    String role;
+    int? v;
+    String? id;
+    Country? country;
+    String? dateBirth;
+    bool? deleted;
+    String? email;
+    String? firstName;
+    String? gender;
+    String? lastName;
+    String? password;
+    String? phone;
+    String? roleStr;
 
-    RegisterUser({this.v, this.id, this.country, this.dateBirth, this.deleted, this.email, this.firstName, this.gender, this.lastName, this.password, this.phone, this.role});
+    RegisterUser({this.v, this.id, this.country, this.dateBirth, this.deleted, this.email, this.firstName, this.gender, this.lastName, this.password, this.phone, this.roleStr});
 
     factory RegisterUser.fromJson(Map<String, dynamic> json) {
         return RegisterUser(
@@ -29,8 +29,8 @@ class RegisterUser {
             gender: json['gender'], 
             lastName: json['lastName'], 
             password: json['password'], 
-            phone: json['phone'], 
-            role: json['role'], 
+            phone: json['phone'],
+            roleStr: json['roleStr'],
         );
     }
 
@@ -46,9 +46,9 @@ class RegisterUser {
         data['lastName'] = this.lastName;
         data['password'] = this.password;
         data['phone'] = this.phone;
-        data['role'] = this.role;
+        data['roleStr'] = this.roleStr;
         if (this.country != null) {
-            data['country'] = this.country.toJson();
+            data['country'] = this.country?.toJson();
         }
         return data;
     }

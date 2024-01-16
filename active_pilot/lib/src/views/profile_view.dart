@@ -1,13 +1,17 @@
 import 'package:aircraft/src/bloc/profile_bloc.dart';
+import 'package:aircraft/src/bloc/user_bloc.dart';
 import 'package:aircraft/src/models/UserDetail.dart';
+import 'package:aircraft/src/models/UserTotals.dart';
 import 'package:aircraft/src/sharedpreferences/shared_preferences_user.dart';
+import 'package:aircraft/src/views/edit_profile_view.dart';
 import 'package:aircraft/src/views/logbook_view.dart';
 import 'package:aircraft/src/views/menu_view.dart';
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:loading_overlay/loading_overlay.dart';
 import 'package:lottie/lottie.dart';
 
-import 'edit_profile_view.dart';
+import 'document_profile_view.dart';
 import 'endorsment_view.dart';
 
 class ProfileView extends StatefulWidget {
@@ -20,6 +24,7 @@ class ProfileView extends StatefulWidget {
 class _ProfileViewState extends State<ProfileView> {
   final _profileBloc = ProfileBloc();
   final _pageController = PageController();
+  final _userBloc = UserBloc();
   int _currentMenu = 0;
   bool _isLoading = false;
 
@@ -36,6 +41,7 @@ class _ProfileViewState extends State<ProfileView> {
       _isLoading = true;
     });
     await _profileBloc.loadProfile();
+    _userBloc.loadTotals();
     setState(() {
       _isLoading = false;
     });
@@ -49,10 +55,22 @@ class _ProfileViewState extends State<ProfileView> {
         progressIndicator: Lottie.asset('assets/gifs/35718-loader.json',
             width: 100, height: 100),
         isLoading: _isLoading,
-        child: _app(context));
+        child: _resolveProfile(context));
   }
 
-  Widget _app(BuildContext context) {
+  Widget _resolveProfile(BuildContext context) {
+    return StreamBuilder(
+        stream: _profileBloc.streamProfile,
+        builder: (BuildContext context, AsyncSnapshot<UserDetail> snapshot) {
+          if (snapshot.hasData) {
+            UserDetail? userDetail = snapshot.data;
+            return _app(context, userDetail!);
+          }
+          return Container();
+        });
+  }
+
+  Widget _app(BuildContext context, UserDetail userDetail) {
     final size = MediaQuery.of(context).size;
 
     return Scaffold(
@@ -60,7 +78,7 @@ class _ProfileViewState extends State<ProfileView> {
           elevation: 0,
           backgroundColor: Color.fromRGBO(4, 41, 68, 1),
           leading: new Container()),
-      endDrawer: Drawer(child: MenuView()),
+      endDrawer: Drawer(child: MenuView(userDetail)),
       body: Container(
         width: double.infinity,
         height: double.infinity,
@@ -78,7 +96,7 @@ class _ProfileViewState extends State<ProfileView> {
             ),
             Column(
               children: [
-                _profileWidget(),
+                _profileWidget(userDetail),
                 Expanded(
                     child: Container(
                   decoration: BoxDecoration(
@@ -110,63 +128,76 @@ class _ProfileViewState extends State<ProfileView> {
     );
   }
 
-  Widget _profileWidget() {
+  Widget _profileWidget(UserDetail userDetail) {
     final size = MediaQuery.of(context).size;
-    return StreamBuilder(
-        stream: _profileBloc.streamProfile,
-        builder: (BuildContext context, AsyncSnapshot<UserDetail> snapshot) {
-          if (snapshot.hasData) {
-            return Container(
-              width: double.infinity,
-              height: size.height * 0.3,
-              child: Container(
-                height: size.height * 0.20,
-                padding: EdgeInsets.only(
-                    top: size.height * 0.02,
-                    left: size.height * 0.067,
-                    right: size.height * 0.067),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: _profileView(snapshot.data),
-                ),
-              ),
-            );
-          }
-          return Container();
-        });
+    return Container(
+      width: double.infinity,
+      height: size.height * 0.3,
+      child: Container(
+        height: size.height * 0.20,
+        padding: EdgeInsets.only(
+            top: size.height * 0.02,
+            left: 24,
+            right: 24),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: _profileView(userDetail),
+        ),
+      ),
+    );
   }
 
-  List<Widget> _profileView(UserDetail userDetail) {
+  List<Widget> _profileView(UserDetail? userDetail) {
     final prefs = SharedPreferencesUser();
-    prefs.role = userDetail.role;
+    prefs.role = userDetail?.roleStr ?? "";
     final size = MediaQuery.of(context).size;
 
     final listWidget = [
-      CircleAvatar(
-        radius: size.width * 0.1,
-        backgroundColor: Colors.transparent,
-        backgroundImage: AssetImage("assets/images/defaultprofile.png"),
+      Container(
+
+        width: 120,
+        height: 120,
+        child: _imageProfile(userDetail, size)
       ),
-      SizedBox(
-        width: 22,
+      Expanded(
+          child: SizedBox()
       ),
       Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            "${userDetail.firstName} ${userDetail.lastName}",
-            style: TextStyle(
-                fontFamily: "Poppins",
-                fontSize: 18,
-                fontWeight: FontWeight.w600,
-                color: Colors.white // semi-bold
+          Row(
+            children: [
+              Container(
+                constraints: BoxConstraints(maxWidth: 110),
+                child: AutoSizeText(
+                  "${userDetail?.firstName} ${userDetail?.lastName}",
+                  overflow: TextOverflow.ellipsis,
+                  minFontSize: 16,
+                  maxLines: 2,
+                  style: TextStyle(
+                      fontFamily: "Poppins",
+                      fontSize: 18,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white // semi-bold
+                      ),
                 ),
+              ),
+              SizedBox(width: 10,),
+              InkWell(
+                child: Icon(
+                  Icons.edit,
+                  color: Color.fromRGBO(255, 255, 255, 1),
+                  size: 20,
+                ),
+                onTap: () => _openProfile(context, userDetail),
+              )
+            ],
           ),
           SizedBox(
             height: 4,
           ),
           Text(
-            "${userDetail.role.toUpperCase()}",
+            "${userDetail?.roleStr?.toUpperCase()}",
             style: TextStyle(
                 fontFamily: "Poppins",
                 fontSize: 11,
@@ -174,62 +205,126 @@ class _ProfileViewState extends State<ProfileView> {
                 color: Color.fromRGBO(223, 173, 78, 1)),
           ),
           SizedBox(
-            height: 24,
+            height: 20,
           ),
-          Row(
-            children: [
-              Column(
-                children: [
-                  Text(
-                    "0",
-                    style: TextStyle(
-                        fontFamily: "Poppins",
-                        fontSize: 18,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.white // semi-bold
-                        ),
-                  ),
-                  Text(
-                    "Total Hours",
-                    style: TextStyle(
-                        fontFamily: "Open Sans",
-                        fontSize: 11,
-                        fontWeight: FontWeight.w400,
-                        color: Color.fromRGBO(196, 196, 196, 1)),
-                  )
-                ],
-              ),
-              SizedBox(
-                width: 35,
-              ),
-              Column(
-                children: [
-                  Text(
-                    "0",
-                    style: TextStyle(
-                        fontFamily: "Poppins",
-                        fontSize: 18,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.white // semi-bold
-                        ),
-                  ),
-                  Text(
-                    "Last 30 days",
-                    style: TextStyle(
-                        fontFamily: "Open Sans",
-                        fontSize: 11,
-                        fontWeight: FontWeight.w400,
-                        color: Color.fromRGBO(196, 196, 196, 1)),
-                  )
-                ],
-              )
-            ],
-          )
+          _loadTotals()
         ],
       )
     ];
 
     return listWidget;
+  }
+
+  Widget _loadTotals() {
+    return StreamBuilder<UserTotals>(
+      stream: _userBloc.userTotalStream,
+      builder: (context, snapshot) {
+        if (snapshot.hasData) {
+          return Column(
+            children: [
+              Row(
+                children: [
+                  Column(
+                    children: [
+                      AutoSizeText(
+                        _formatDouble(snapshot.data?.totalDays),
+                        overflow: TextOverflow.ellipsis,
+                        minFontSize: 16,
+                        style: TextStyle(
+                            fontFamily: "Poppins",
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.white // semi-bold
+                        ),
+                      ),
+                      Text(
+                        "Total Hours",
+                        style: TextStyle(
+                            fontFamily: "Open Sans",
+                            fontSize: 11,
+                            fontWeight: FontWeight.w400,
+                            color: Color.fromRGBO(196, 196, 196, 1)),
+                      ),
+                      AutoSizeText(
+                        "${snapshot.data?.last90Days}",
+                        overflow: TextOverflow.ellipsis,
+                        minFontSize: 16,
+                        style: TextStyle(
+                            fontFamily: "Poppins",
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.white // semi-bold
+                        ),
+                      ),
+                      Text(
+                        "Last 90 days",
+                        style: TextStyle(
+                            fontFamily: "Open Sans",
+                            fontSize: 11,
+                            fontWeight: FontWeight.w400,
+                            color: Color.fromRGBO(196, 196, 196, 1)),
+                      )
+                    ],
+                  ),
+                  SizedBox(
+                    width: 35,
+                  ),
+                  Column(
+                    children: [
+                      AutoSizeText(
+                        "${snapshot.data?.last30Days}",
+                        overflow: TextOverflow.ellipsis,
+                        minFontSize: 16,
+                        style: TextStyle(
+                            fontFamily: "Poppins",
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.white // semi-bold
+                        ),
+                      ),
+                      Text(
+                        "Last 30 days",
+                        style: TextStyle(
+                            fontFamily: "Open Sans",
+                            fontSize: 11,
+                            fontWeight: FontWeight.w400,
+                            color: Color.fromRGBO(196, 196, 196, 1)),
+                      ),
+                      Column(
+                        children: [
+                          AutoSizeText(
+                            "${snapshot.data?.approaches}",
+                            overflow: TextOverflow.ellipsis,
+                            minFontSize: 16,
+                            style: TextStyle(
+                                fontFamily: "Poppins",
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.white // semi-bold
+                            ),
+                          ),
+                          Text(
+                            "IFR Approaches",
+                            style: TextStyle(
+                                fontFamily: "Open Sans",
+                                fontSize: 11,
+                                fontWeight: FontWeight.w400,
+                                color: Color.fromRGBO(196, 196, 196, 1)),
+                          )
+                        ],
+                      )
+                    ],
+                  )
+                ],
+              )
+            ],
+          );
+        } else if (snapshot.hasError) {
+          return Container();
+        }
+        return Container();
+      },
+    );
   }
 
   Widget _menus() {
@@ -244,8 +339,8 @@ class _ProfileViewState extends State<ProfileView> {
   }
 
   List<Widget> _listMenus() {
-    final menus = ["Logbook", "Endorsment", "Documents"];
-    final listMenus = List<Widget>();
+    final menus = ["Logbook", "Docs"];
+    final List<Widget> listMenus = [];
     menus.asMap().forEach((idx, val) {
       TextStyle style;
       Container container;
@@ -269,7 +364,7 @@ class _ProfileViewState extends State<ProfileView> {
       }
 
       final menu = Expanded(
-        child: FlatButton(
+        child: TextButton(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -298,7 +393,7 @@ class _ProfileViewState extends State<ProfileView> {
 
   Widget _pages() {
     return PageView.builder(
-        itemCount: 3,
+        itemCount: 2,
         controller: _pageController,
         onPageChanged: (index) {
           _pageChanged(index);
@@ -309,14 +404,14 @@ class _ProfileViewState extends State<ProfileView> {
               key: Key("logbook"),
             );
           }
-          if (index == 1) {
+          /*if (index == 1) {
             return EndorsmentView(
               key: Key("endorsment"),
             );
-          }
-          if (index == 2) {
-            return EditProfileView(
-              key: Key("editprofile"),
+          }*/
+          if (index == 1) {
+            return DocumentProfileView(
+              key: Key("documentprofile"),
             );
           }
           return Container();
@@ -327,5 +422,50 @@ class _ProfileViewState extends State<ProfileView> {
     setState(() {
       _currentMenu = index;
     });
+  }
+
+  void _openProfile(BuildContext context, UserDetail? userDetail) async {
+    final result = await Navigator.of(context).pushNamed(EditProfileView.routeName, arguments: {"userDetail": userDetail});
+    if(result != null && result as bool && result) {
+      _reloadData();
+    }
+  }
+
+  Widget _imageProfile(UserDetail? userDetail, Size size) {
+      Widget image;
+      if(userDetail?.photo?.url != null) {
+        image = Image.network(userDetail?.photo?.url ?? "", fit: BoxFit.fill);
+      } else {
+        image = Image.asset("assets/images/defaultprofile.png");
+      }
+
+      return CircleAvatar(
+        radius: size.width * 1,
+        backgroundColor: Colors.transparent,
+        child:  ClipRRect(
+          borderRadius: new BorderRadius.circular(60),
+          child: AspectRatio(
+              aspectRatio: 1,
+              child: image),
+        ),
+      );
+  }
+
+  String _formatDouble(double? value) {
+    if (value != null) {
+      var verbose = value.toStringAsFixed(4);
+      var trimmed = verbose;
+      //trim all trailing 0's after the decimal point (and the decimal point if applicable)
+      for (var i = verbose.length - 1; i > 0; i--) {
+        if (trimmed[i] != '0' && trimmed[i] != '.' || !trimmed.contains('.')) {
+          break;
+        }
+        trimmed = trimmed.substring(0, i);
+      }
+      return trimmed;
+    } else {
+      return "0";
+    }
+
   }
 }

@@ -1,24 +1,42 @@
-class UserDetail {
-    int v;
-    String id;
-    Country country;
-    String dateBirth;
-    bool deleted;
-    String email;
-    String firstName;
-    String gender;
-    Instructor instructor;
-    bool isAdmin;
-    String lastName;
-    String phone;
-    Photo photo;
-    Pilot pilot;
-    String role;
-    String roles;
+import 'package:aircraft/src/models/Aircraft.dart';
 
-    UserDetail({this.v, this.id, this.country, this.dateBirth, this.deleted, this.email, this.firstName, this.gender, this.instructor, this.isAdmin, this.lastName, this.phone, this.photo, this.pilot, this.role, this.roles});
+class UserDetail {
+    int? v;
+    String? id;
+    Country? country;
+    String? dateBirth;
+    bool? deleted;
+    String? email;
+    String? firstName;
+    String? gender;
+    Instructor? instructor;
+    bool? isAdmin;
+    String? lastName;
+    String? phone;
+    Photo? photo;
+    Pilot? pilot;
+    String? roleStr;
+    List<String>? roles;
+    String? city;
+    String? address;
+    String? address2;
+    String? state;
+    String? zip;
+
+    UserDetail({this.v, this.id, this.country, this.dateBirth, this.deleted, this.email, this.firstName, this.gender, this.instructor, this.isAdmin, this.lastName, this.phone, this.photo, this.pilot, this.roleStr, this.roles, this.city, this.address, this.address2, this.state, this.zip});
 
     factory UserDetail.fromJson(Map<String, dynamic> json) {
+
+        List<String> tempRoles = [];
+        if (json['roles'] != null) {
+            tempRoles = [];
+            json['roles'].forEach((v) {
+                if(v is String) {
+                    tempRoles.add(v);
+                }
+            });
+        }
+
         return UserDetail(
             v: json['__v'],
             id: json['_id'],
@@ -34,8 +52,13 @@ class UserDetail {
             phone: json['phone'],
             photo: json['photo'] != null ? Photo.fromJson(json['photo']) : null,
             pilot: json['pilot'] != null ? Pilot.fromJson(json['pilot']) : null,
-            role: json['role'],
-            roles: json['roles'],
+            roleStr: json['roleStr'],
+            city: json['city'],
+            address: json['address'],
+            address2: json['address2'],
+            state: json['state'],
+            zip: json['zip'],
+            roles: tempRoles,
         );
     }
 
@@ -51,28 +74,57 @@ class UserDetail {
         data['isAdmin'] = this.isAdmin;
         data['lastName'] = this.lastName;
         data['phone'] = this.phone;
-        data['role'] = this.role;
+        data['roleStr'] = this.roleStr;
         data['roles'] = this.roles;
+        data['city'] = this.city;
+        data['address'] = this.address;
+        data['address2'] = this.address2;
+        data['state'] = this.state;
+        data['zip'] = this.zip;
         if (this.country != null) {
-            data['country'] = this.country.toJson();
+            data['country'] = this.country?.toJson();
         }
         if (this.instructor != null) {
-            data['instructor'] = this.instructor.toJson();
+            data['instructor'] = this.instructor?.toJson();
         }
         if (this.photo != null) {
-            data['photo'] = this.photo.toJson();
+            data['photo'] = this.photo?.toJson();
         }
         if (this.pilot != null) {
-            data['pilot'] = this.pilot.toJson();
+            data['pilot'] = this.pilot?.toJson();
         }
         return data;
+    }
+
+    static UserDetail none(String id) {
+        return UserDetail(v: 0,
+        id: id,
+        country: null,
+        dateBirth: "",
+        deleted: false,
+        email: "",
+        firstName: "none",
+        gender: "",
+        instructor: null,
+        isAdmin: false,
+        lastName: "",
+        phone: "",
+        photo: null,
+        pilot: null,
+        roleStr: "",
+        city: "",
+        address: "",
+        address2: "",
+        state: "",
+        zip: "",
+        roles: []);
     }
 }
 
 class Country {
-    String id;
-    bool deleted;
-    String name;
+    String? id;
+    bool? deleted;
+    String? name;
 
     Country({this.id, this.deleted, this.name});
 
@@ -93,60 +145,14 @@ class Country {
     }
 }
 
-class Pilot {
-    String id;
-    List<String> aircraftCategory;
-    bool canFlight;
-    bool canReserve;
-    String certificateNumber;
-    bool enabled;
-    bool flyAlone;
-    String sId;
-    String firstName;
-    String lastName;
-
-    Pilot({this.id, this.aircraftCategory, this.canFlight, this.canReserve, this.certificateNumber, this.enabled, this.flyAlone, this.sId, this.firstName, this.lastName});
-
-    factory Pilot.fromJson(Map<String, dynamic> json) {
-        return Pilot(
-            id: json['_id'],
-            aircraftCategory: json['aircraftCategory'] != null ? new List<String>.from(json['aircraftCategory']) : null,
-            canFlight: json['canFlight'],
-            canReserve: json['canReserve'],
-            certificateNumber: json['certificateNumber'],
-            enabled: json['enabled'],
-            flyAlone: json['flyAlone'],
-            sId: json['_id'],
-            firstName: json['firstName'],
-            lastName: json['lastName']
-        );
-    }
-
-    Map<String, dynamic> toJson() {
-        final Map<String, dynamic> data = new Map<String, dynamic>();
-        data['_id'] = this.id;
-        data['canFlight'] = this.canFlight;
-        data['canReserve'] = this.canReserve;
-        data['certificateNumber'] = this.certificateNumber;
-        data['enabled'] = this.enabled;
-        data['flyAlone'] = this.flyAlone;
-        if (this.aircraftCategory != null) {
-            data['aircraftCategory'] = this.aircraftCategory;
-        }
-        data['_id'] = this.sId;
-        data['firstName'] = this.firstName;
-        data['lastName'] = this.lastName;
-        return data;
-    }
-}
 
 class Photo {
-    String id;
-    String bucket;
-    String eTag;
-    String key;
-    String location;
-    String url;
+    String? id;
+    String? bucket;
+    String? eTag;
+    String? key;
+    String? location;
+    String? url;
 
     Photo({this.id, this.bucket, this.eTag, this.key, this.location, this.url});
 
@@ -173,43 +179,153 @@ class Photo {
     }
 }
 
-class Instructor {
-    String id;
-    String description;
-    bool enabled;
-    Location location;
-    String scheduleName;
+class UserInstructor {
+    Instructor? instructor;
+    String? sId;
 
-    Instructor({this.id, this.description, this.enabled, this.location, this.scheduleName});
+    UserInstructor({this.instructor, this.sId});
 
-    factory Instructor.fromJson(Map<String, dynamic> json) {
-        return Instructor(
-            id: json['_id'],
-            description: json['description'],
-            enabled: json['enabled'],
-            location: json['location'] != null ? Location.fromJson(json['location']) : null,
-            scheduleName: json['scheduleName'],
-        );
+    UserInstructor.fromJson(Map<String, dynamic> json) {
+        instructor = json['instructor'] != null
+            ? new Instructor.fromJson(json['instructor'])
+            : null;
+        sId = json['_id'];
     }
 
     Map<String, dynamic> toJson() {
         final Map<String, dynamic> data = new Map<String, dynamic>();
-        data['_id'] = this.id;
-        data['description'] = this.description;
+        if (this.instructor != null) {
+            data['instructor'] = this.instructor?.toJson();
+        }
+        data['_id'] = this.sId;
+        return data;
+    }
+}
+
+class Instructor {
+    bool? enabled;
+    String? scheduleName;
+    String? description;
+    String? giv;
+    String? fiv;
+    AircraftCategories? location;
+
+    Instructor(
+        {this.enabled, this.scheduleName, this.description, this.location, this.giv, this.fiv});
+
+    Instructor.fromJson(Map<String, dynamic> json) {
+        enabled = json['enabled'];
+        scheduleName = json['scheduleName'];
+        description = json['description'];
+        giv = json['giv'];
+        fiv = json['fiv'];
+        location = json['location'] != null
+            ? new AircraftCategories.fromJson(json['location'])
+            : null;
+    }
+
+    Map<String, dynamic> toJson() {
+        final Map<String, dynamic> data = new Map<String, dynamic>();
         data['enabled'] = this.enabled;
         data['scheduleName'] = this.scheduleName;
+        data['description'] = this.description;
+        data['giv'] = this.giv;
+        data['fiv'] = this.fiv;
         if (this.location != null) {
-            data['location'] = this.location.toJson();
+            data['location'] = this.location?.toJson();
         }
         return data;
     }
 }
 
+class UserPilot {
+    Pilot? pilot;
+    String? sId;
+    String? firstName;
+    String? lastName;
+    String? fullName;
+    String? id;
+
+    UserPilot(
+        {this.pilot,
+            this.sId,
+            this.firstName,
+            this.lastName,
+            this.fullName,
+            this.id});
+
+    UserPilot.fromJson(Map<String, dynamic> json) {
+        pilot = json['pilot'] != null ? new Pilot.fromJson(json['pilot']) : null;
+        sId = json['_id'];
+        firstName = json['firstName'];
+        lastName = json['lastName'];
+        fullName = json['fullName'];
+        id = json['id'];
+    }
+
+    Map<String, dynamic> toJson() {
+        final Map<String, dynamic> data = new Map<String, dynamic>();
+        if (this.pilot != null) {
+            data['pilot'] = this.pilot?.toJson();
+        }
+        data['_id'] = this.sId;
+        data['firstName'] = this.firstName;
+        data['lastName'] = this.lastName;
+        data['fullName'] = this.fullName;
+        data['id'] = this.id;
+        return data;
+    }
+}
+
+class Pilot {
+    bool? enabled;
+    List<String>? aircraftCategories;
+    String? certificateNumber;
+    bool? canFlight;
+    bool? flyAlone;
+    bool? canReserve;
+
+    Pilot(
+        {this.enabled,
+            this.aircraftCategories,
+            this.certificateNumber,
+            this.canFlight,
+            this.flyAlone,
+            this.canReserve});
+
+    Pilot.fromJson(Map<String, dynamic> json) {
+        enabled = json['enabled'];
+        if (json['aircraftCategories'] != null) {
+            aircraftCategories = [];
+            json['aircraftCategories'].forEach((v) {
+                if(v is String) {
+                    aircraftCategories?.add(v);
+                }
+            });
+        }
+        certificateNumber = json['certificateNumber'];
+        canFlight = json['canFlight'];
+        flyAlone = json['flyAlone'];
+        canReserve = json['canReserve'];
+    }
+
+    Map<String, dynamic> toJson() {
+        final Map<String, dynamic> data = new Map<String, dynamic>();
+        data['enabled'] = this.enabled;
+        data['aircraftCategories'] = this.aircraftCategories;
+        data['certificateNumber'] = this.certificateNumber;
+        data['canFlight'] = this.canFlight;
+        data['flyAlone'] = this.flyAlone;
+        data['canReserve'] = this.canReserve;
+        return data;
+    }
+}
+
 class Location {
-    int v;
-    String id;
-    bool deleted;
-    String name;
+    int? v;
+    String? id;
+    bool? deleted;
+    String? name;
 
     Location({this.v, this.id, this.deleted, this.name});
 

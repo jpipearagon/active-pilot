@@ -1,1 +1,1 @@
-enum ReservationStatus { pending, canceled, rejected, flying, approved, finish }
+enum ReservationStatus { pending, canceled, rejected, flying, approved, finished, readytopay, payed }

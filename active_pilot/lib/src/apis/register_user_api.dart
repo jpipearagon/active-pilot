@@ -8,7 +8,7 @@ class RegisterUserApi {
 
   final RestApi _restApi = RestApi();
 
-  Future<dynamic> registerUser(String firstName, String lastName, String password, String email, String phone, String role, String dateBirth, String gender) async {
+  Future<dynamic> registerUser(String firstName, String lastName, String password, String email, String phone, String idLocation) async {
     try {
       final Map<String, String> params = {
         "firstName": firstName,
@@ -16,6 +16,7 @@ class RegisterUserApi {
         "password": password,
         "email": email,
         "phone": phone,
+        "location._id": idLocation
       };
       final response = await _restApi.post(endPoint: "/api/users", queryParameters: params);
       return RegisterUser.fromJson(response);

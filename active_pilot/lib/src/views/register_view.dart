@@ -1,10 +1,13 @@
 import 'dart:convert';
 
+import 'package:aircraft/src/apis/locations_api.dart';
 import 'package:aircraft/src/apis/register_user_api.dart';
+import 'package:aircraft/src/models/Locations.dart';
 import 'package:aircraft/src/models/RegisterUser.dart';
 import 'package:aircraft/src/sharedpreferences/shared_preferences_user.dart';
 import 'package:aircraft/src/views/message_dialog_view.dart';
 import 'package:aircraft/src/views/profile_view.dart';
+import 'package:aircraft/src/views/select_data_view.dart';
 import 'package:aircraft/src/widgets/message_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_picker/Picker.dart';
@@ -53,6 +56,8 @@ class _RegisterViewState extends State<RegisterView> {
     ''';
 
   bool _isLoading = false;
+  LocationUser? _locationUser;
+  String _strLocation = "Select Location";
 
   @override
   Widget build(BuildContext context) {
@@ -128,6 +133,8 @@ class _RegisterViewState extends State<RegisterView> {
                   SizedBox(height: size.height * 0.037,),
                   phoneTextField(),
                   SizedBox(height: size.height * 0.037,),
+                  locationWidget(),
+                  SizedBox(height: size.height * 0.037,),
                   passwordTextField(),
                   SizedBox(height: size.height * 0.037,),
                   confirmPasswordTextField(),
@@ -136,12 +143,14 @@ class _RegisterViewState extends State<RegisterView> {
                     child: ButtonTheme(
                       minWidth: 170.0,
                       height: 36.0,
-                      child: RaisedButton(
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(18.0),
-                            side: BorderSide(color: Colors.transparent)
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Color.fromRGBO(223, 173, 78, 1),
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(18.0),
+                              side: BorderSide(color: Colors.transparent)
+                          ),
                         ),
-                        color: Color.fromRGBO(223, 173, 78, 1),
                         child: Text(
                           "Register",
                           style: TextStyle(
@@ -187,6 +196,20 @@ class _RegisterViewState extends State<RegisterView> {
         ),
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    _textEditingControllerLicenceID.dispose();
+    _textEditingControllerEmail.dispose();
+    _textEditingControllerDate.dispose();
+    _textEditingControllerFirst.dispose();
+    _textEditingControllerLast.dispose();
+    _textEditingControllerGender.dispose();
+    _textEditingControllerPass.dispose();
+    _textEditingControllerConfirmPass.dispose();
+    _textEditingControllerPhone.dispose();
+    super.dispose();
   }
 
   Widget licenceTextField() {
@@ -299,7 +322,7 @@ class _RegisterViewState extends State<RegisterView> {
   }
 
   Future<Null> _selectDate(BuildContext context) async {
-    final DateTime pickedDate = await showDatePicker(
+    final DateTime? pickedDate = await showDatePicker(
       context: context,
       initialDate: DateTime.now(),
       firstDate: DateTime(1900),
@@ -372,7 +395,11 @@ class _RegisterViewState extends State<RegisterView> {
             prefixIconConstraints:BoxConstraints(minWidth: 23, maxHeight: 20),
             prefixIcon: Padding(
               padding: const EdgeInsets.only(right: 20),
-              child: SizedBox(width: 17, height: 15,),
+              child: SizedBox(
+                  width: 15,
+                  height: 17,
+                  child: Icon(Icons.person, color: Color.fromRGBO(223, 173, 78, 1))
+              )
             )
         ),
         onChanged: (text) {
@@ -482,7 +509,11 @@ class _RegisterViewState extends State<RegisterView> {
             prefixIconConstraints:BoxConstraints(minWidth: 23, maxHeight: 20),
             prefixIcon: Padding(
               padding: const EdgeInsets.only(right: 20),
-              child: SizedBox(width: 17, height: 15,),
+              child: SizedBox(
+                  width: 17,
+                  height: 20,
+                  child: Icon(Icons.remove_red_eye, color: Color.fromRGBO(223, 173, 78, 1))
+              ),
             )
         ),
       ),
@@ -523,6 +554,83 @@ class _RegisterViewState extends State<RegisterView> {
     );
   }
 
+  Widget locationWidget() {
+    return Container(
+      child: Column(
+        children: [
+          GestureDetector(
+            child: SizedBox(
+              height: 60,
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.location_on,
+                    color: Color.fromRGBO(223, 173, 78, 1),
+                  ),
+                  SizedBox(
+                    width: 16,
+                  ),
+                  Expanded(
+                    child: Text(
+                        _strLocation,
+                        style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 14,
+                            fontFamily: "Montserrat",
+                            fontWeight: FontWeight.w400
+                        )
+                    ),
+                  ),
+                  SizedBox(
+                      width: 12,
+                      height: 19,
+                      child: Icon(Icons.arrow_forward_ios, color: Color.fromRGBO(223, 173, 78, 1))
+                  )
+                ],
+              ),
+            ),
+            onTap: () => _getLocation(),
+          ),
+          Container(
+            height: 1,
+            decoration: BoxDecoration(
+                color: Color.fromRGBO(238, 238, 238, 1)
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _getLocation() async {
+    setState(() {
+      _isLoading = true;
+    });
+    final locationApi = LocationsApi();
+    final locations = await locationApi.getLocations();
+    setState(() {
+      _isLoading = false;
+    });
+    showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            content: SelectDataView(type: Types.location,
+              data: locations ?? [],
+              onTap: (type, data) => _selectData(type, data),),
+          );
+        });
+  }
+
+  void _selectData(Types type, dynamic dataSelect) {
+    if(type == Types.location) {
+      _locationUser = dataSelect;
+      setState(() {
+        _strLocation = _locationUser?.name ?? "";
+      });
+    }
+  }
+
   void _registerUser(BuildContext context) async {
     String email = _textEditingControllerEmail.text;
     String first = _textEditingControllerFirst.text;
@@ -532,7 +640,7 @@ class _RegisterViewState extends State<RegisterView> {
     String confpass = _textEditingControllerConfirmPass.text;
 
 
-    if(email.isEmpty || first.isEmpty || last.isEmpty || pass.isEmpty || confpass.isEmpty || phone.isEmpty) {
+    if(email.isEmpty || first.isEmpty || last.isEmpty || pass.isEmpty || confpass.isEmpty || phone.isEmpty || _locationUser == null) {
       showMessage(context, "Error Register", "The fields must not be empty") ;
       return;
     }
@@ -548,7 +656,7 @@ class _RegisterViewState extends State<RegisterView> {
 
     final _registerUserApi = RegisterUserApi();
     final statusLogin =
-    await _registerUserApi.registerUser(first, last, pass, email, phone, "", "", "");
+    await _registerUserApi.registerUser(first, last, pass, email, phone, _locationUser?.id ?? "");
 
     if(statusLogin != null) {
 
@@ -580,7 +688,6 @@ class _RegisterViewState extends State<RegisterView> {
       });
       showMessage(context, "Error Register", "User registration service error.");
     }
-
   }
 
   void successRegistered(BuildContext context) {
